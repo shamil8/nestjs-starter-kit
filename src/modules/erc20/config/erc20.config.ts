@@ -13,6 +13,9 @@ export class Erc20Config {
    */
   public readonly erc20: ContractWeb3Type;
 
+  /** Queue prefix for rabbitMQ (maybe for exchange) */
+  private readonly queuePrefix = 'erc20';
+
   constructor(private configService: ConfigService) {
     this.erc20 = config.server.isDev
       ? {
@@ -24,7 +27,7 @@ export class Erc20Config {
             ),
             abi: erc20Abi,
             firstBlock: 22686004,
-            queuePrefix: 'erc20',
+            queuePrefix: this.queuePrefix,
           },
         }
       : {
@@ -36,7 +39,7 @@ export class Erc20Config {
             ),
             abi: erc20Abi,
             firstBlock: 21178068,
-            queuePrefix: 'erc20',
+            queuePrefix: this.queuePrefix,
           },
         };
   }
