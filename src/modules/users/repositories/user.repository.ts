@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
-import { Page } from '@app/crypto-libs/repository/page';
+import { Page } from '@app/crypto-utils/repositories/page';
 
 import { UserEntity } from '../entities/user.entity';
 import { StoreUserCommand } from '../dto/command/store-user.command';

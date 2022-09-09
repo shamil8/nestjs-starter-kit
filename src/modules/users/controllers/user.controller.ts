@@ -8,7 +8,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { wrongRequestApiResource } from '@app/crypto-libs/documentation/wrong-request-api-response';
+import { wrongRequestApiResource } from '@app/crypto-utils/documentation/wrong-request-api-response';
 
 import { UserService } from '../services/user.service';
 import { StoreUserCommand } from '../dto/command/store-user.command';

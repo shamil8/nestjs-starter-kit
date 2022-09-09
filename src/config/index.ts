@@ -3,7 +3,6 @@ import { config } from 'dotenv';
 config();
 
 export default {
-  rabbitUrl: process.env.RABBITMQ_URL,
   redis: {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT ? Number(process.env.REDIS_PORT) : 6379,

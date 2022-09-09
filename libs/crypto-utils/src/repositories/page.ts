@@ -1,4 +1,4 @@
-import { InvariantViolationException } from '../exception/invariant-violation.exception';
+import { InvariantViolationException } from '../exceptions/invariant-violation.exception';
 
 export class Page {
   constructor(private _pageNumber: number = 1, private _limit: number | null) {

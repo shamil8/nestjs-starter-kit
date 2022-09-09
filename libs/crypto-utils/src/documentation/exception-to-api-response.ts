@@ -1,5 +1,5 @@
 import { ExceptionType } from '../enums/exceptions/exception-type';
-import { ExceptionCodeInterface } from '../exception/interfaces/exception-code-interface';
+import { ExceptionCodeInterface } from '../exceptions/interfaces/exception-code-interface';
 
 export class ExceptionToApiResponse {
   public static build(

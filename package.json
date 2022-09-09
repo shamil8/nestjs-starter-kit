@@ -1,7 +1,7 @@
 {
   "name": "nest-starter-kit",
   "version": "0.0.1",
-  "description": "",
+  "description": "NestJS starter kit",
   "author": "Shamil Qurbonov <qurbonovshamil@gmail.com>",
   "private": true,
   "license": "MIT",
@@ -26,6 +26,7 @@
     "migration:revert": "yarn run typeorm -d ./src/config/typeorm.config.ts migration:revert"
   },
   "dependencies": {
+    "@golevelup/nestjs-rabbitmq": "^3.2.0",
     "@nestjs/common": "^8.0.0",
     "@nestjs/config": "^2.2.0",
     "@nestjs/core": "^8.0.0",
@@ -89,7 +90,7 @@
       "**/*.(t|j)s"
     ],
     "moduleNameMapper": {
-      "@app/utils/(.*)": "<rootDir>/libs/utils/$1",
+      "@app/crypto-utils/(.*)": "<rootDir>/libs/crypto-utils/src/$1",
       "@app/contracts/(.*)": "<rootDir>/libs/contracts/$1"
     },
     "coverageDirectory": "../coverage",
