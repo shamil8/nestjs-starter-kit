@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  # Application container
+  app-backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: docker:latest
+    container_name: app-backend
+    links:
+      - app-db
+      - app-rabbit
+    env_file:
+      - .env.dev
+    deploy:
+      replicas: 1
+    ports:
+      - "5001:5000"
+
+  # Postgres SQL
+  app-db:
+    image: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    container_name: app-db
+    restart: always
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: app_db
+    ports:
+      - "5433:5432"
+
+  # Rabbit MQ
+  app-rabbit:
+    container_name: app-rabbit
+    image: rabbitmq:3-management
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: "app"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+      RABBITMQ_DEFAULT_VHOST: "/app"
+    ports:
+      - "15673:15672" # Rabbit Management url: http://127.0.0.1:15673/
+      - "5673:5672"
+
+  # Adminer for database
+  app-adminer:
+    image: adminer
+    container_name: app-adminer
+    links:
+      - app-db
+    restart: always
+    ports:
+      - "8082:8080"  # port for adminer 8081
+volumes:
+  db-data:

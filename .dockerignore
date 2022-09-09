@@ -1,0 +1,23 @@
+# Dependency directories
+node_modules
+
+# IDE / Editor
+.idea
+
+# Git
+.git
+.gitignore
+.gitlab-ci.yml
+
+# build files and tests
+dist
+
+.env.local
+.eslintrc.js
+.prettierrc
+
+# Docker files
+docker
+.dockerignore
+
+README.md
