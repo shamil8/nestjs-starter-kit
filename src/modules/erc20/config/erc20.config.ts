@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import config from '../../../config';
-import { Network } from '../enums/network';
+import { Network } from '../../web3/enums/network';
 import { erc20Abi } from '@app/contracts/erc20.abi';
-import { ContractWeb3Type } from '../interfaces/contract-web3.interface';
+import { ContractWeb3Type } from '../../web3/interfaces/contract-web3.interface';
 
 @Injectable()
 export class Erc20Config {

@@ -4,10 +4,9 @@ import { ConfigModule } from '@nestjs/config';
 
 import { RabbitModule } from '../rabbit/rabbit.module';
 import { Web3Config } from './config/web3.config';
-import { Erc20Config } from './config/erc20.config';
 import { ParserInfoEntity } from './entities/parser-info.entity';
 import { ParserInfoRepository } from './repositories/parser-info.repository';
-import { InitWeb3Listener } from './listeners/init-web3.listener';
+import { Web3Listener } from './listeners/web3.listener';
 
 @Module({
   imports: [
@@ -16,19 +15,18 @@ import { InitWeb3Listener } from './listeners/init-web3.listener';
     RabbitModule,
   ],
   exports: [
-    /** web3 initialised listeners */
-    InitWeb3Listener,
+    /** web3 listener */
+    Web3Listener,
   ],
   providers: [
     // configs
     Web3Config,
-    Erc20Config,
 
     // repositories
     ParserInfoRepository,
 
     // listeners
-    InitWeb3Listener,
+    Web3Listener,
   ],
 })
 export class Web3Module {}
