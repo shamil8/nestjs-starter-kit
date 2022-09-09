@@ -14,4 +14,4 @@ import { DatabaseConfig } from './config/database.config';
     }),
   ],
 })
-export default class DatabaseModule {}
+export class DatabaseModule {}
