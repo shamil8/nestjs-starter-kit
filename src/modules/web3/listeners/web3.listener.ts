@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { camelToSnakeCase } from '@app/crypto-utils/functions/core.util';
+import { timeToMs } from '@app/crypto-utils/functions/time.util';
 
 import { ProducerService } from '../../rabbit/services/producer.service';
 import { Web3Config } from '../config/web3.config';
@@ -7,11 +8,8 @@ import { Network } from '../enums/network';
 import { Web3Service } from '../services/web3.service';
 import { ContractService } from '../services/contract.service';
 import { ParserInfoRepository } from '../repositories/parser-info.repository';
-import {
-  ContractInterface,
-  ContractWeb3Type,
-} from '../interfaces/contract-web3.interface';
-import { timeToMs } from '@app/crypto-utils/functions/time.util';
+import { ContractInterface } from '../interfaces/contract-web3.interface';
+import { LoggerService } from '../../logger/services/logger.service';
 
 type InitWeb3Type = { [key in Network]: Web3Service };
 type QueueNameType = { [key: string]: string };
@@ -25,6 +23,7 @@ export class Web3Listener {
     private readonly web3Config: Web3Config,
     private readonly parserRepository: ParserInfoRepository,
     private readonly producerService: ProducerService,
+    private readonly logger: LoggerService,
   ) {
     this.web3 = this.initListeners();
   }
@@ -35,7 +34,12 @@ export class Web3Listener {
     for (const net of Object.values(Network)) {
       const provider = this.web3Config.providers[net];
 
-      web3[net] = new Web3Service(net, provider, this.web3Config.privateKey);
+      web3[net] = new Web3Service(
+        this.logger,
+        net,
+        provider,
+        this.web3Config.privateKey,
+      );
     }
 
     return web3;
@@ -52,26 +56,27 @@ export class Web3Listener {
     return contractWeb3Listener.contract.methods;
   }
 
-  private getQueueNames(contracts: ContractWeb3Type): QueueNameType {
+  private getQueueNames(contractConfig: ContractInterface): QueueNameType {
     const queueNames: QueueNameType = {};
 
-    for (const contractInfo of Object.values(contracts)) {
-      const eventNames = contractInfo.abi
-        .filter((item) => item.type === 'event' && item.name)
-        .map((item) => item.name);
+    const eventNames = contractConfig.abi
+      .filter((item) => item.type === 'event' && item.name)
+      .map((item) => item.name);
 
-      for (const name of eventNames as string[]) {
-        queueNames[name] = `${contractInfo.queuePrefix}.${camelToSnakeCase(
-          name,
-        )}`;
-      }
+    for (const name of eventNames as string[]) {
+      queueNames[name] = `${contractConfig.queuePrefix}.${camelToSnakeCase(
+        name,
+      )}`;
     }
 
     return queueNames;
   }
 
-  checkQueueEnum<T>(contracts: ContractWeb3Type, names: [string, T][]): void {
-    const queueNames = this.getQueueNames(contracts);
+  private checkQueueEnum<T>(
+    contractConfig: ContractInterface,
+    names: [string, T][],
+  ): void {
+    const queueNames = this.getQueueNames(contractConfig);
 
     for (const [key, queue] of names) {
       if (queueNames[key] === String(queue)) {
@@ -86,8 +91,8 @@ export class Web3Listener {
     }
 
     setTimeout(() => {
-      console.log(
-        '[Web3Listener] you can add Enum for these queues or subscribe:',
+      this.logger.log(
+        'you can add Enum for these queues or subscribe:',
         stayedNames.reduce(
           (msg, [key, queue]) => msg + `${key} = '${queue}', \n`,
           '\n',

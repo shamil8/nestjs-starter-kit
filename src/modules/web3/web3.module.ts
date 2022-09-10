@@ -7,6 +7,7 @@ import { Web3Config } from './config/web3.config';
 import { ParserInfoEntity } from './entities/parser-info.entity';
 import { ParserInfoRepository } from './repositories/parser-info.repository';
 import { Web3Listener } from './listeners/web3.listener';
+import { LoggerService } from '../logger/services/logger.service';
 
 @Module({
   imports: [
@@ -21,6 +22,9 @@ import { Web3Listener } from './listeners/web3.listener';
   providers: [
     // configs
     Web3Config,
+
+    // services
+    LoggerService,
 
     // repositories
     ParserInfoRepository,

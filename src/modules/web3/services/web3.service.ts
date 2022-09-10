@@ -9,6 +9,7 @@ import { extensionFormatter } from '../formatters/extension.formatter';
 import { ProviderInterface } from '../interfaces/provider-web3.interface';
 import { TransactionMethodInterface } from '../interfaces/contract-method.interface';
 import { TransactionJobInterface } from '../interfaces/transaction-job.interface';
+import { LoggerService } from '../../logger/services/logger.service';
 import { ProducerService } from '../../rabbit/services/producer.service';
 import { Network } from '../enums/network';
 
@@ -33,12 +34,14 @@ export class Web3Service {
   public readonly parseLimit: number;
 
   constructor(
+    public readonly logger: LoggerService,
     public readonly net: Network,
     private readonly provider: ProviderInterface,
     protected readonly privateKey?: string,
   ) {
     this.parseLimit = provider.parseLimit;
 
+    this.logger.setContext(`${Web3Service.name}__${this.net}`);
     this.initWeb3(provider.url);
   }
 
@@ -61,13 +64,7 @@ export class Web3Service {
     this.web3.eth.accounts.wallet.add(account);
     this.web3.eth.defaultAccount = account.address;
 
-    console.log(
-      '\x1b[32m%s\x1b[0m',
-      '[Web3Service] initWeb3 net',
-      this.net,
-      'account:',
-      account.address,
-    );
+    this.logger.verbose('Init web3 net', { account: account.address });
   }
 
   async netSubscribe(
@@ -76,11 +73,7 @@ export class Web3Service {
     addresses: Set<string>,
   ): Promise<void> {
     const lastBlockNum = await this.getBlockNumber('netSubscribe');
-    console.log(
-      'Web3Service: lastBlockNumber',
-      lastBlockNum,
-      `from net ${this.net}`,
-    );
+    this.logger.warn('Get lastBlockNumber', { lastBlockNum });
 
     let tmpBlockNumber: number;
 
@@ -93,7 +86,7 @@ export class Web3Service {
         }
 
         if (error) {
-          console.error('[Web3Service]: errorRes', error);
+          this.logger.error('errorRes', error);
         }
 
         tmpBlockNumber = res.blockNumber;
@@ -138,15 +131,15 @@ export class Web3Service {
     return new this.web3.eth.Contract(Abi, address);
   }
 
-  async getBlockNumber(exceptionMessage = 'Error'): Promise<number | null> {
+  async getBlockNumber(stack = 'Error'): Promise<number | null> {
     try {
       return this.web3.eth.getBlockNumber();
     } catch (e: any) {
-      console.error(
-        `[${exceptionMessage}]: getBlockNumber from net ${this.net}`,
-        `provider: ${this.getProvider()}`,
-        e,
-      );
+      this.logger.error('Error getBlockNumber', {
+        stack,
+        provider: this.getProvider(),
+        extra: e,
+      });
 
       return null;
     }
@@ -215,10 +208,9 @@ export class Web3Service {
 
     const gas = await transaction.estimateGas({ from });
 
-    console.log(
-      `[Web3Service] gasPrice for method '${transaction._method.name}' :`,
+    this.logger.log(`gasPrice for method '${transaction._method.name}'`, {
       gas,
-    );
+    });
 
     return transaction.send({ from, gas });
   }

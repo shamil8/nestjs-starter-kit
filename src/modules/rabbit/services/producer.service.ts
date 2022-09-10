@@ -1,12 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { LoggerService } from '../../logger/services/logger.service';
 
 @Injectable()
 export class ProducerService {
-  constructor(private readonly amqpConnection: AmqpConnection) {}
+  constructor(
+    private readonly logger: LoggerService,
+    private readonly amqpConnection: AmqpConnection,
+  ) {
+    this.logger.setContext(ProducerService.name);
+  }
 
   public async sayHelloExchange(queue: string, exchange = ''): Promise<void> {
-    console.log('[ProducerService] sayHelloExchange | sent a message!');
+    this.logger.log('sayHelloExchange | sent a message!');
+
     return this.amqpConnection.publish(exchange, queue, 'Hello from rabbit');
   }
 

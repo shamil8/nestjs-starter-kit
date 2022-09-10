@@ -22,6 +22,13 @@ export class ContractService {
   /** parse interval time */
   private readonly parseIntervalTime!: number;
 
+  private readonly errorOptions = {
+    provider: this.web3.getProvider(),
+    address: this.contractInfo.address,
+    net: this.web3.net,
+    stack: ContractService.name,
+  };
+
   constructor(
     /** web3 service */
     private readonly web3: Web3Service,
@@ -48,29 +55,29 @@ export class ContractService {
 
   async subscribeToContract(): Promise<void> {
     try {
-      console.log(
-        '\x1b[36m%s\x1b[0m',
-        `[ContractService] Subscribed | net: '${this.web3.net}' | contract: ${this.contractInfo.address}.`,
-      );
+      this.web3.logger.warn('Subscribed in contract:', {
+        address: this.contractInfo.address,
+        net: this.web3.net,
+      });
 
       if (!this.web3.isHttpProvider()) {
         await this.subscribeAllEvents(this.eventCallback.bind(this));
       }
 
       this.parseEventsLoop(this.eventCallback.bind(this));
-    } catch (e) {
-      console.error(
-        `[ContractService] Can not call web3 method with provider: ${this.web3.getProvider()}`,
-        e,
-      );
+    } catch (e: any) {
+      this.web3.logger.error('Can not call web3 method with provider:', {
+        ...this.errorOptions,
+        extra: e,
+      });
     }
   }
 
   async eventCallback(data: EventDataInterface, isWs = true): Promise<void> {
     if (!data.event) {
-      console.error(
-        '[ContractService] Event data without event name, transactionHash:',
-        data.transactionHash,
+      this.web3.logger.error(
+        'Event data without event name, transactionHash:',
+        { stack: ContractService.name, transactionHash: data.transactionHash },
       );
 
       return;
@@ -105,24 +112,28 @@ export class ContractService {
       this.contract.events
         .allEvents({ fromBlock }, (err: any) => {
           if (err) {
-            console.error(
-              '[ContractService] subscribeAllEvents allEvents:',
-              err,
-            );
+            this.web3.logger.error('subscribeAllEvents allEvents:', {
+              stack: ContractService.name,
+              extra: err,
+            });
+
             this.subscribeAllEvents(callback);
           }
         })
         .on('data', callback)
         .on('error', (err: any) => {
-          console.error(
-            '[ContractService] subscribeAllEvents eventError:',
-            err,
-          );
+          this.web3.logger.error('subscribeAllEvents eventError:', {
+            stack: ContractService.name,
+            extra: err,
+          });
 
           this.subscribeAllEvents(callback);
         });
-    } catch (e) {
-      console.error('[ContractService] subscribeAllEvents Error:', e);
+    } catch (e: any) {
+      this.web3.logger.error('Error subscribeAllEvents:', {
+        stack: ContractService.name,
+        extra: e,
+      });
     }
   }
 
@@ -140,7 +151,7 @@ export class ContractService {
     let { fromBlock } = payload;
     let events = this.contractInfo.events;
 
-    console.log('[ContractService] parseEvents lastBlockNumber', latest);
+    this.web3.logger.log('parseEvents lastBlockNumber', { latest });
 
     for (
       let toBlock = fromBlock + limit;
@@ -152,11 +163,11 @@ export class ContractService {
         toBlock: toBlock <= latest ? toBlock : latest,
       };
 
-      console.log(
-        '\x1b[35m%s\x1b[0m',
-        `[ContractService] Parse '${this.web3.net}': `,
+      this.web3.logger.warn('Parse:', {
         options,
-      );
+        net: this.web3.net,
+        stack: ContractService.name,
+      });
 
       !events && (events = ['allEvents']);
 
@@ -179,11 +190,11 @@ export class ContractService {
           net: this.web3.net,
           address: this.contractInfo.address,
         });
-      } catch (e) {
-        console.error(
-          `[ContractService] parseEvents starting timeout, provider: ${this.web3.getProvider()}`,
-          e,
-        );
+      } catch (e: any) {
+        this.web3.logger.error('Error parseEvents starting timeout:', {
+          ...this.errorOptions,
+          extra: e,
+        });
 
         await sleepTimeout(this.sleepTime);
         await this.parseEvents(payload); // repeat if got error
@@ -209,8 +220,11 @@ export class ContractService {
         });
 
         await sleepTimeout(this.parseIntervalTime);
-      } catch (e) {
-        console.error('[ContractService]', e);
+      } catch (e: any) {
+        this.web3.logger.error('Error parseEventsLoop:', {
+          ...this.errorOptions,
+          extra: e,
+        });
       }
     }
   }

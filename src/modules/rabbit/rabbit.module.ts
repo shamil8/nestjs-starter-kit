@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 
 import { RabbitConfig } from './config/rabbit.config';
+import { LoggerService } from '../logger/services/logger.service';
 import { ConsumerService } from './services/consumer.service';
 import { ProducerService } from './services/producer.service';
 import { RabbitListener } from './listeners/rabbit.listener';
@@ -19,6 +20,7 @@ import { RabbitListener } from './listeners/rabbit.listener';
   ],
   providers: [
     // services
+    LoggerService,
     ProducerService,
     ConsumerService,
 

@@ -4,10 +4,16 @@ import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 import { QueueErc20 } from '../enums/queue-erc20';
 import { ApprovalJobInterface } from '../interfaces/approval-job.interface';
 import { Erc20Service } from '../services/erc20.service';
+import { LoggerService } from '../../logger/services/logger.service';
 
 @Injectable()
 export class ApproveJob {
-  constructor(private readonly erc20Service: Erc20Service) {}
+  constructor(
+    private readonly logger: LoggerService,
+    private readonly erc20Service: Erc20Service,
+  ) {
+    this.logger.setContext(ApproveJob.name);
+  }
 
   @RabbitSubscribe({
     exchange: '',
@@ -18,8 +24,8 @@ export class ApproveJob {
     const owner = data.returnValues.owner.toLowerCase();
     const amount = 500;
 
-    console.log('[ApproveJob] spender', spender);
-    console.log('[ApproveJob] owner', owner);
+    this.logger.log('spender', spender);
+    this.logger.log('owner', owner);
 
     await this.erc20Service.transfer(spender, amount);
   }

@@ -18,10 +18,10 @@ export class SubscribeService {
   ) {
     this.web3Bsc = this.web3Listener.web3[Network.BSC];
 
-    this.web3Listener.checkQueueEnum(
-      this.erc20Config.erc20,
-      Object.entries(QueueErc20),
-    );
+    // this.web3Listener.checkQueueEnum(
+    //   this.erc20Config.erc20,
+    //   Object.entries(QueueErc20),
+    // );
 
     this.subscribeContracts();
   }

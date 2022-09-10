@@ -2,11 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { TransactionReceipt } from 'web3-core';
 import BigNumber from 'bignumber.js';
 
+import { LoggerService } from '../../logger/services/logger.service';
 import { SubscribeService } from './subscribe.service';
 
 @Injectable()
 export class Erc20Service {
-  constructor(private readonly subscribeService: SubscribeService) {
+  constructor(
+    private readonly logger: LoggerService,
+    private readonly subscribeService: SubscribeService,
+  ) {
     this.transfer('0x83b625a83f109b6dc753accfe737c62475fd2285', 1);
   }
   async transfer(
@@ -22,7 +26,7 @@ export class Erc20Service {
       amountStr,
     );
 
-    console.log('[Erc20Service] decimals', decimals);
+    this.logger.log('getDecimals', { decimals });
     return null;
     // return this.subscribeService.web3Bsc.sendTransaction(transaction);
   }
