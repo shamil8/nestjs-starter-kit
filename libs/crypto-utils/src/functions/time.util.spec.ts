@@ -59,7 +59,7 @@ test('msToTime type tests', () => {
 test('parallelLoop type tests', () => {
   parallelLoop(
     async (...args) => {
-      await console.log('I am here heeee!', args);
+      await console.log('Get arguments:', args);
     },
     [12, 'shamil'],
     4,

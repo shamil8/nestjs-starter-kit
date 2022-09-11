@@ -2,7 +2,7 @@ import { Contract } from 'web3-eth-contract';
 import { camelToSnakeCase } from '@app/crypto-utils/functions/core.util';
 import { sleepTimeout, timeToMs } from '@app/crypto-utils/functions/time.util';
 
-import { Web3Listener } from './web3.listener';
+import { Web3Service } from './web3.service';
 import { ParserInfoRepository } from '../repositories/parser-info.repository';
 import { ContractInterface } from '../interfaces/contract-web3.interface';
 import { ProducerService } from '../../rabbit/services/producer.service';
@@ -12,7 +12,7 @@ import {
   ParseEventInterface,
 } from '../interfaces/parse-event.interface';
 
-export class ContractWeb3Listener {
+export class ContractService {
   /** sleep timeout for retry 15 seconds */
   private readonly sleepTime = timeToMs(15, 'second');
 
@@ -22,9 +22,16 @@ export class ContractWeb3Listener {
   /** parse interval time */
   private readonly parseIntervalTime!: number;
 
+  private readonly errorOptions = {
+    provider: this.web3.getProvider(),
+    address: this.contractInfo.address,
+    net: this.web3.net,
+    stack: ContractService.name,
+  };
+
   constructor(
-    /** web3 listener */
-    private readonly web3: Web3Listener,
+    /** web3 service */
+    private readonly web3: Web3Service,
     /** contract info */
     private readonly contractInfo: ContractInterface,
     /** parser info repository */
@@ -48,29 +55,29 @@ export class ContractWeb3Listener {
 
   async subscribeToContract(): Promise<void> {
     try {
-      console.log(
-        '\x1b[36m%s\x1b[0m',
-        `[ContractWeb3Listener] Subscribed | net: '${this.web3.net}' | contract: ${this.contractInfo.address}.`,
-      );
+      this.web3.logger.warn('Subscribed in contract:', {
+        address: this.contractInfo.address,
+        net: this.web3.net,
+      });
 
       if (!this.web3.isHttpProvider()) {
         await this.subscribeAllEvents(this.eventCallback.bind(this));
       }
 
       this.parseEventsLoop(this.eventCallback.bind(this));
-    } catch (e) {
-      console.error(
-        `[ContractWeb3Listener] Can not call web3 method with provider: ${this.web3.getProvider()}`,
-        e,
-      );
+    } catch (e: any) {
+      this.web3.logger.error('Can not call web3 method with provider:', {
+        ...this.errorOptions,
+        extra: e,
+      });
     }
   }
 
   async eventCallback(data: EventDataInterface, isWs = true): Promise<void> {
     if (!data.event) {
-      console.error(
-        '[ContractWeb3Listener] Event data without event name, transactionHash:',
-        data.transactionHash,
+      this.web3.logger.error(
+        'Event data without event name, transactionHash:',
+        { stack: ContractService.name, transactionHash: data.transactionHash },
       );
 
       return;
@@ -105,24 +112,28 @@ export class ContractWeb3Listener {
       this.contract.events
         .allEvents({ fromBlock }, (err: any) => {
           if (err) {
-            console.error(
-              '[ContractWeb3Listener] subscribeAllEvents allEvents:',
-              err,
-            );
+            this.web3.logger.error('subscribeAllEvents allEvents:', {
+              stack: ContractService.name,
+              extra: err,
+            });
+
             this.subscribeAllEvents(callback);
           }
         })
         .on('data', callback)
         .on('error', (err: any) => {
-          console.error(
-            '[ContractWeb3Listener] subscribeAllEvents eventError:',
-            err,
-          );
+          this.web3.logger.error('subscribeAllEvents eventError:', {
+            stack: ContractService.name,
+            extra: err,
+          });
 
           this.subscribeAllEvents(callback);
         });
-    } catch (e) {
-      console.error('[ContractWeb3Listener] subscribeAllEvents Error:', e);
+    } catch (e: any) {
+      this.web3.logger.error('Error subscribeAllEvents:', {
+        stack: ContractService.name,
+        extra: e,
+      });
     }
   }
 
@@ -140,7 +151,7 @@ export class ContractWeb3Listener {
     let { fromBlock } = payload;
     let events = this.contractInfo.events;
 
-    console.log('[ContractWeb3Listener] parseEvents lastBlockNumber', latest);
+    this.web3.logger.log('parseEvents lastBlockNumber', { latest });
 
     for (
       let toBlock = fromBlock + limit;
@@ -152,11 +163,11 @@ export class ContractWeb3Listener {
         toBlock: toBlock <= latest ? toBlock : latest,
       };
 
-      console.log(
-        '\x1b[35m%s\x1b[0m',
-        `[ContractWeb3Listener] Parse '${this.web3.net}': `,
+      this.web3.logger.warn('Parse:', {
         options,
-      );
+        net: this.web3.net,
+        stack: ContractService.name,
+      });
 
       !events && (events = ['allEvents']);
 
@@ -179,11 +190,11 @@ export class ContractWeb3Listener {
           net: this.web3.net,
           address: this.contractInfo.address,
         });
-      } catch (e) {
-        console.error(
-          `[ContractWeb3Listener] parseEvents starting timeout, provider: ${this.web3.getProvider()}`,
-          e,
-        );
+      } catch (e: any) {
+        this.web3.logger.error('Error parseEvents starting timeout:', {
+          ...this.errorOptions,
+          extra: e,
+        });
 
         await sleepTimeout(this.sleepTime);
         await this.parseEvents(payload); // repeat if got error
@@ -209,8 +220,11 @@ export class ContractWeb3Listener {
         });
 
         await sleepTimeout(this.parseIntervalTime);
-      } catch (e) {
-        console.error('[ContractWeb3Listener]', e);
+      } catch (e: any) {
+        this.web3.logger.error('Error parseEventsLoop:', {
+          ...this.errorOptions,
+          extra: e,
+        });
       }
     }
   }

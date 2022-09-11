@@ -4,10 +4,16 @@ import { UserRepository } from '../repositories/user.repository';
 import { StoreUserCommand } from '../dto/command/store-user.command';
 import { UserDto } from '../dto/resource/user.dto';
 import { UserListQuery } from '../dto/query/user-list.query';
+import { LoggerService } from '../../logger/services/logger.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly logger: LoggerService,
+  ) {
+    this.logger.info('Hello winston!', { sender: 'Shamil' });
+  }
 
   async getUsers(query: UserListQuery): Promise<UserDto[]> {
     const users = await this.userRepository.list(query);

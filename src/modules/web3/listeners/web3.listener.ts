@@ -1,225 +1,104 @@
-import Web3 from 'web3';
-import { AbiItem } from 'web3-utils';
-import { BlockTransactionString } from 'web3-eth';
-import { Contract } from 'web3-eth-contract';
-import { Transaction, Sign, TransactionReceipt, BlockNumber } from 'web3-core';
-import { WebsocketProviderOptions } from 'web3-core-helpers';
+import { Injectable } from '@nestjs/common';
+import { camelToSnakeCase } from '@app/crypto-utils/functions/core.util';
+import { timeToMs } from '@app/crypto-utils/functions/time.util';
 
-import { extensionFormatter } from '../formatters/extension.formatter';
-import { ProviderInterface } from '../interfaces/provider-web3.interface';
-import { ContractMethodInterface } from '../interfaces/contract-method.interface';
-import { TransactionJobInterface } from '../interfaces/transaction-job.interface';
 import { ProducerService } from '../../rabbit/services/producer.service';
+import { Web3Config } from '../config/web3.config';
 import { Network } from '../enums/network';
+import { Web3Service } from '../services/web3.service';
+import { ContractService } from '../services/contract.service';
+import { ParserInfoRepository } from '../repositories/parser-info.repository';
+import { ContractInterface } from '../interfaces/contract-web3.interface';
+import { LoggerService } from '../../logger/services/logger.service';
 
+type InitWeb3Type = { [key in Network]: Web3Service };
+type QueueNameType = { [key: string]: string };
+
+@Injectable()
 export class Web3Listener {
-  protected websocketOptions: WebsocketProviderOptions = {
-    clientConfig: {
-      maxReceivedFrameSize: 100000000,
-      maxReceivedMessageSize: 100000000,
-    },
-    reconnect: {
-      auto: true,
-      // delay set to `ms`
-      delay: 5000,
-      maxAttempts: 15,
-      onTimeout: false,
-    },
-  };
-
-  protected web3!: Web3;
-
-  /** Blockchain max count blocks */
-  public readonly parseLimit: number;
+  /** Initialise web3 listeners */
+  public readonly web3!: InitWeb3Type;
 
   constructor(
-    public readonly net: Network,
-    private readonly provider: ProviderInterface,
-    protected readonly privateKey?: string,
+    private readonly web3Config: Web3Config,
+    private readonly parserRepository: ParserInfoRepository,
+    private readonly producerService: ProducerService,
+    private readonly logger: LoggerService,
   ) {
-    this.parseLimit = provider.parseLimit;
-
-    this.initWeb3(provider.url);
+    this.web3 = this.initListeners();
   }
 
-  protected initWeb3(provider: string): void {
-    const providerWS = this.hasHttp(provider)
-      ? new Web3.providers.HttpProvider(provider)
-      : new Web3.providers.WebsocketProvider(provider, this.websocketOptions);
+  protected initListeners(): InitWeb3Type {
+    const web3 = {} as InitWeb3Type;
 
-    this.web3 = new Web3(providerWS);
+    for (const net of Object.values(Network)) {
+      const provider = this.web3Config.providers[net];
 
-    /** Extends web3 methods */
-    this.web3.extend(extensionFormatter);
+      web3[net] = new Web3Service(
+        this.logger,
+        net,
+        provider,
+        this.web3Config.privateKey,
+      );
+    }
 
-    if (!this.privateKey) {
+    return web3;
+  }
+
+  public listenContract(net: Network, contractConfig: ContractInterface): any {
+    const contractWeb3Listener = new ContractService(
+      this.web3[net],
+      contractConfig,
+      this.parserRepository,
+      this.producerService,
+    );
+
+    return contractWeb3Listener.contract.methods;
+  }
+
+  private getQueueNames(contractConfig: ContractInterface): QueueNameType {
+    const queueNames: QueueNameType = {};
+
+    const eventNames = contractConfig.abi
+      .filter((item) => item.type === 'event' && item.name)
+      .map((item) => item.name);
+
+    for (const name of eventNames as string[]) {
+      queueNames[name] = `${contractConfig.queuePrefix}.${camelToSnakeCase(
+        name,
+      )}`;
+    }
+
+    return queueNames;
+  }
+
+  public checkQueueEnum<T>(
+    contractConfig: ContractInterface,
+    names: [string, T][],
+  ): void {
+    const queueNames = this.getQueueNames(contractConfig);
+
+    for (const [key, queue] of names) {
+      if (queueNames[key] === String(queue)) {
+        delete queueNames[key];
+      }
+    }
+
+    const stayedNames = Object.entries(queueNames);
+
+    if (!stayedNames.length) {
       return;
     }
 
-    /** web3 with account for sending transaction */
-    const account = this.web3.eth.accounts.privateKeyToAccount(this.privateKey);
-    this.web3.eth.accounts.wallet.add(account);
-    this.web3.eth.defaultAccount = account.address;
-
-    console.log(
-      '\x1b[32m%s\x1b[0m',
-      '[Web3Listener] initWeb3 net',
-      this.net,
-      'account:',
-      account.address,
-    );
-  }
-
-  async netSubscribe(
-    producer: ProducerService,
-    queueName: string,
-    addresses: Set<string>,
-  ): Promise<void> {
-    const lastBlockNum = await this.getBlockNumber('netSubscribe');
-    console.log(
-      'Web3Listener: lastBlockNumber',
-      lastBlockNum,
-      `from net ${this.net}`,
-    );
-
-    let tmpBlockNumber: number;
-
-    this.web3.eth.subscribe(
-      'logs',
-      { fromBlock: 'latest' },
-      async (error, res) => {
-        if (tmpBlockNumber === res.blockNumber) {
-          return;
-        }
-
-        if (error) {
-          console.error('[Web3Listener]: errorRes', error);
-        }
-
-        tmpBlockNumber = res.blockNumber;
-
-        const transaction = await this.getTransaction(res.transactionHash);
-
-        if (!transaction) {
-          return;
-        }
-
-        let walletAddress;
-
-        if (addresses.has(transaction.from)) {
-          walletAddress = transaction.from;
-        } else if (transaction.to && addresses.has(transaction.to)) {
-          walletAddress = transaction.to;
-        }
-
-        if (!walletAddress) {
-          return;
-        }
-
-        const queueData: TransactionJobInterface = {
-          ...transaction,
-          walletAddress,
-        };
-
-        await producer.addMessage(queueName, queueData);
-      },
-    );
-  }
-
-  async getBlock(blockNumber: BlockNumber): Promise<BlockTransactionString> {
-    return this.web3.eth.getBlock(blockNumber);
-  }
-
-  async getTransaction(transactionHash: string): Promise<Transaction> {
-    return this.web3.eth.getTransaction(transactionHash);
-  }
-
-  createContract(Abi: AbiItem[], address: string): Contract {
-    return new this.web3.eth.Contract(Abi, address);
-  }
-
-  async getBlockNumber(exceptionMessage = 'Error'): Promise<number | null> {
-    try {
-      return this.web3.eth.getBlockNumber();
-    } catch (e: any) {
-      console.error(
-        `[${exceptionMessage}]: getBlockNumber from net ${this.net}`,
-        `provider: ${this.getProvider()}`,
-        e,
+    setTimeout(() => {
+      const text = stayedNames.reduce(
+        (msg, [key, queue]) => msg + `${key} = '${queue}', \n`,
+        '\n',
       );
 
-      return null;
-    }
-  }
-
-  async getUserBalance(address: string, isWei = false): Promise<string> {
-    const balance = await this.web3.eth.getBalance(address);
-
-    return isWei ? this.web3.utils.fromWei(balance) : balance;
-  }
-
-  getAccountAddress(): string {
-    return this.web3.eth.accounts.wallet[0].address;
-  }
-
-  async getGasPrice(): Promise<string> {
-    const price = await this.web3.eth.getGasPrice();
-
-    return this.web3.utils.toHex(price);
-  }
-
-  createSignature(data: string[]): Sign | null {
-    const sha3 = this.web3.utils.soliditySha3(...data);
-
-    if (!sha3 || !this.privateKey) {
-      return null;
-    }
-
-    return this.web3.eth.accounts.sign(sha3, this.privateKey);
-  }
-
-  getProvider(): string {
-    const provider = this.web3.currentProvider as unknown as {
-      host: string;
-      url?: string;
-    };
-
-    return provider.url || provider.host;
-  }
-
-  isHttpProvider(): boolean {
-    return this.hasHttp(this.getProvider());
-  }
-
-  private hasHttp(url: string): boolean {
-    return url.includes('https') || url.includes('http');
-  }
-
-  isUserSign(address: string, sign: string): boolean {
-    try {
-      const message = this.web3.utils.utf8ToHex(address);
-      const addressFromSign = this.web3.eth.accounts
-        .recover(message, sign)
-        .toLowerCase();
-
-      return addressFromSign === address;
-    } catch (e: any) {
-      return false;
-    }
-  }
-
-  async sendTransaction(
-    transaction: ContractMethodInterface,
-  ): Promise<TransactionReceipt> {
-    const from = this.getAccountAddress();
-
-    const gas = await transaction.estimateGas({ from });
-
-    console.log(
-      `[Web3Listener] gasPrice for method '${transaction._method.name}' :`,
-      gas,
-    );
-
-    return transaction.send({ from, gas });
+      this.logger.warn(`Maybe need to add Enum for these queues: ${text}`, {
+        context: Web3Listener.name,
+      });
+    }, timeToMs(2));
   }
 }

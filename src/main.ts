@@ -7,7 +7,7 @@ import swagger from './config/swagger.config';
 import { AppModule } from './app.module';
 
 async function main(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
   // const adapter = app.get(HttpAdapterHost);
   // const exceptionFilter = new AppExceptionsFilter(adapter);

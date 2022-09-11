@@ -5,7 +5,7 @@ import {
 } from 'web3-eth-contract';
 import { PromiEvent, TransactionReceipt } from 'web3-core';
 
-export interface ContractMethodInterface {
+export interface TransactionMethodInterface {
   _method: { name: string };
 
   send(
@@ -13,14 +13,9 @@ export interface ContractMethodInterface {
     callback?: (err: Error, transactionHash: string) => void,
   ): PromiEvent<TransactionReceipt>;
 
-  call(
-    options?: CallOptions,
-    callback?: (err: Error, result: any) => void,
-  ): Promise<any>;
-
   estimateGas(options: EstimateGasOptions): Promise<number>;
 }
 
-export type ContractMethodType = {
-  [key: string]: (...data: any) => ContractMethodInterface;
+export type ViewDefaultMethodType = () => {
+  call(options?: CallOptions): Promise<string>;
 };

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Network } from '../enums/network';
 import { ConfigService } from '@nestjs/config';
 
+import { Network } from '../enums/network';
 import { ProviderWeb3Interface } from '../interfaces/provider-web3.interface';
 
 @Injectable()
