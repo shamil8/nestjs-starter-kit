@@ -20,7 +20,7 @@ export class LoggerConfig {
           ? WinstonDefaultLogLevel.debug
           : WinstonDefaultLogLevel.info,
       ),
-      isRotateLoggerFilesActivated: this.configService.get<boolean>(
+      isRotateLoggerFile: this.configService.get<boolean>(
         'IS_ROTATE_LOGGER_FILE',
         true,
       ),
