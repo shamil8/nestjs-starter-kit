@@ -5,12 +5,9 @@ import helmet from 'helmet';
 import config from './config';
 import swagger from './config/swagger.config';
 import { AppModule } from './app.module';
-import { LoggerService } from './modules/logger/services/logger.service';
 
 async function main(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
-
-  app.useLogger(app.get(LoggerService));
 
   // const adapter = app.get(HttpAdapterHost);
   // const exceptionFilter = new AppExceptionsFilter(adapter);

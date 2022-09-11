@@ -12,8 +12,6 @@ export class UserService {
     private readonly userRepository: UserRepository,
     private readonly logger: LoggerService,
   ) {
-    this.logger.setContext(UserService.name);
-
     this.logger.info('Hello winston!', { sender: 'Shamil' });
   }
 

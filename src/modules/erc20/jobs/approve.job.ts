@@ -11,9 +11,7 @@ export class ApproveJob {
   constructor(
     private readonly logger: LoggerService,
     private readonly erc20Service: Erc20Service,
-  ) {
-    this.logger.setContext(ApproveJob.name);
-  }
+  ) {}
 
   @RabbitSubscribe({
     exchange: '',

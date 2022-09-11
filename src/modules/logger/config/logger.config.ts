@@ -14,7 +14,7 @@ export class LoggerConfig {
     this.loggerParams = {
       level: this.configService.get<WinstonDefaultLogLevel>(
         'LOGGER_LEVEL',
-        WinstonDefaultLogLevel.info,
+        WinstonDefaultLogLevel.debug,
       ),
       isRotateLoggerFilesActivated: this.configService.get<boolean>(
         'IS_ROTATE_LOGGER_FILES_ACTIVATED',

@@ -8,9 +8,7 @@ import { LoggerService } from '../../logger/services/logger.service';
 
 @Injectable()
 export class ConsumerService {
-  constructor(private readonly logger: LoggerService) {
-    this.logger.setContext(ConsumerService.name);
-  }
+  constructor(private readonly logger: LoggerService) {}
 
   @RabbitSubscribe({
     exchange: ExchangeRabbit.exchangeExample,

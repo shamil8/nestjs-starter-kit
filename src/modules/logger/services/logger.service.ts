@@ -1,28 +1,35 @@
-import { ConsoleLogger, Injectable, LogLevel } from '@nestjs/common';
-import { createLogger, Logger as WinstonLogger } from 'winston';
+import { ConsoleLogger, Inject, Injectable, Scope } from '@nestjs/common';
+import { INQUIRER } from '@nestjs/core';
 
-import { LoggerConfig } from '../config/logger.config';
-import { winstonTransports } from '../filters/winston.transport';
-import { WinstonDefaultLogLevel } from '../enums/winston-default-log-level';
+import { WinstonService } from './winston.service';
 
-@Injectable()
+@Injectable({ scope: Scope.TRANSIENT })
 export class LoggerService extends ConsoleLogger {
-  private readonly winstonLogger!: WinstonLogger;
-
   protected context?: string;
 
-  constructor(private readonly loggerConfig: LoggerConfig) {
+  constructor(
+    private readonly winstonService: WinstonService,
+    @Inject(INQUIRER) context?: string | object,
+  ) {
     super();
-    // TODO:: Move it to config!
-    const winstonTransporters = winstonTransports({
-      level: WinstonDefaultLogLevel.debug,
-      isRotateLoggerFilesActivated: true,
-      loggerMaxFile: '250',
-      loggerMaxSize: '250',
-      loggerName: 'app-without-name',
-    });
 
-    this.winstonLogger = createLogger(winstonTransporters);
+    this.context =
+      typeof context === 'string' ? context : context?.constructor?.name;
+  }
+
+  /**
+   * Write a 'log' level log, if the configured level allows for it.
+   * Prints to `stdout` with newline.
+   */
+  log(
+    message: string,
+    params: object | any[] | string = {},
+    context = this.context,
+  ): void {
+    this.winstonService.logger.info(message, {
+      context,
+      ...(typeof params === 'string' ? { text: params } : params),
+    });
   }
 
   /**
@@ -34,7 +41,7 @@ export class LoggerService extends ConsoleLogger {
     params: object | any[] = {},
     context = this.context,
   ): void {
-    this.winstonLogger.info(message, { context, ...params });
+    this.winstonService.logger.info(message, { context, ...params });
   }
 
   /**
@@ -46,7 +53,7 @@ export class LoggerService extends ConsoleLogger {
     params: object | any[] | string = {},
     context = this.context,
   ): void {
-    this.winstonLogger.error(message, {
+    this.winstonService.logger.error(message, {
       context,
       ...(typeof params === 'string' ? { text: params } : params),
     });
@@ -61,7 +68,7 @@ export class LoggerService extends ConsoleLogger {
     params: object | any[] | string = {},
     context = this.context,
   ): void {
-    this.winstonLogger.warn(message, {
+    this.winstonService.logger.warn(message, {
       context,
       ...(typeof params === 'string' ? { text: params } : params),
     });
@@ -76,7 +83,7 @@ export class LoggerService extends ConsoleLogger {
     params: object | any[] | string = {},
     context = this.context,
   ): void {
-    this.winstonLogger.debug(message, {
+    this.winstonService.logger.debug(message, {
       context,
       ...(typeof params === 'string' ? { text: params } : params),
     });
@@ -91,18 +98,10 @@ export class LoggerService extends ConsoleLogger {
     params: object | any[] | string = {},
     context = this.context,
   ): void {
-    this.winstonLogger.verbose(message, {
+    this.winstonService.logger.verbose(message, {
       context,
       ...(typeof params === 'string' ? { text: params } : params),
     });
-  }
-
-  /**
-   * Set log levels
-   * @param levels log levels
-   */
-  setLogLevels(levels: LogLevel[]): void {
-    super.setLogLevels(levels);
   }
 
   setContext(context: string): void {

@@ -7,9 +7,7 @@ export class ProducerService {
   constructor(
     private readonly logger: LoggerService,
     private readonly amqpConnection: AmqpConnection,
-  ) {
-    this.logger.setContext(ProducerService.name);
-  }
+  ) {}
 
   public async sayHelloExchange(queue: string, exchange = ''): Promise<void> {
     this.logger.log('sayHelloExchange | sent a message!');
