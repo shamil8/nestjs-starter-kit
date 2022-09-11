@@ -72,7 +72,7 @@ export class Web3Listener {
     return queueNames;
   }
 
-  private checkQueueEnum<T>(
+  public checkQueueEnum<T>(
     contractConfig: ContractInterface,
     names: [string, T][],
   ): void {
@@ -91,13 +91,14 @@ export class Web3Listener {
     }
 
     setTimeout(() => {
-      this.logger.log(
-        'you can add Enum for these queues or subscribe:',
-        stayedNames.reduce(
-          (msg, [key, queue]) => msg + `${key} = '${queue}', \n`,
-          '\n',
-        ),
+      const text = stayedNames.reduce(
+        (msg, [key, queue]) => msg + `${key} = '${queue}', \n`,
+        '\n',
       );
+
+      this.logger.warn(`Maybe need to add Enum for these queues: ${text}`, {
+        context: Web3Listener.name,
+      });
     }, timeToMs(2));
   }
 }

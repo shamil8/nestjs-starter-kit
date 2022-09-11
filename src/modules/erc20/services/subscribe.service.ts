@@ -16,12 +16,13 @@ export class SubscribeService {
     private readonly erc20Config: Erc20Config,
     private readonly web3Listener: Web3Listener,
   ) {
-    this.web3Bsc = this.web3Listener.web3[Network.BSC];
+    const net = Network.BSC;
+    this.web3Bsc = this.web3Listener.web3[net];
 
-    // this.web3Listener.checkQueueEnum(
-    //   this.erc20Config.erc20,
-    //   Object.entries(QueueErc20),
-    // );
+    this.web3Listener.checkQueueEnum(
+      this.erc20Config.erc20[net],
+      Object.entries(QueueErc20),
+    );
 
     this.subscribeContracts();
   }
