@@ -6,7 +6,7 @@ ARG RABBITMQ_URL
 ENV DB_HOST=$DB_HOST
 ENV RABBITMQ_URL=$RABBITMQ_URL
 
-ADD .. /app
+ADD . /app
 WORKDIR /app
 
 # unnecessary folder
