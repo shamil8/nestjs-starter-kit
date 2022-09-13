@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { WinstonDefaultLogLevel } from '../enums/winston-default-log-level';
-import { LoggerParamsInterface } from '../interfaces/logger-params.interface';
+import { ParamsLoggerInterface } from '../interfaces/params-logger.interface';
 import config from '../../../config';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class LoggerConfig {
   /**
    * Logger arguments
    */
-  public readonly loggerParams: LoggerParamsInterface;
+  public readonly loggerParams: ParamsLoggerInterface;
 
   constructor(private readonly configService: ConfigService) {
     this.loggerParams = {
