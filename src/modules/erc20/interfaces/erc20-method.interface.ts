@@ -6,7 +6,7 @@ import {
 } from '../../web3/interfaces/contract-method.interface';
 import { Erc20NetType } from './subscribe-erc20-net.interface';
 
-interface Erc20MethodInterface {
+export interface Erc20MethodInterface {
   /** View methods */
   readonly decimals: ViewDefaultMethodType;
   readonly name: ViewDefaultMethodType;

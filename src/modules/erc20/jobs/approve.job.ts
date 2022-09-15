@@ -22,9 +22,9 @@ export class ApproveJob {
     const owner = data.returnValues.owner.toLowerCase();
     const amount = 500;
 
-    this.logger.log('spender', spender);
-    this.logger.log('owner', owner);
+    this.logger.log('spender and owner', { spender, owner });
 
-    await this.erc20Service.transfer(spender, amount, data.net);
+    this.erc20Service.setNet(data.net);
+    await this.erc20Service.transfer(spender, amount);
   }
 }

@@ -10,10 +10,10 @@ import { QueueErc20 } from '../enums/queue-erc20';
 @Injectable()
 export class SubscribeService {
   /** Subscribe to web3 witch use this module (contract) */
-  public readonly web3!: NetWeb3ServiceType;
+  public readonly web3 = {} as NetWeb3ServiceType;
 
   /** contract methods with networks */
-  public erc20Methods!: Erc20NetMethodType;
+  public readonly erc20Methods = {} as Erc20NetMethodType;
 
   constructor(
     private readonly erc20Config: Erc20Config,
