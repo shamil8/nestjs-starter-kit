@@ -12,7 +12,7 @@ import { utilities as nestWinstonModuleUtilities } from 'nest-winston/dist/winst
 import WinstonDailyRotateFile from 'winston-daily-rotate-file';
 
 import { LoggerConfig } from '../config/logger.config';
-import { LoggerParamsInterface } from '../interfaces/logger-params.interface';
+import { ParamsLoggerInterface } from '../interfaces/params-logger.interface';
 
 @Injectable()
 export class WinstonService {
@@ -26,7 +26,7 @@ export class WinstonService {
     this.logger = createLogger(winstonTransporters);
   }
 
-  winstonTransports(params: LoggerParamsInterface): WinstonModuleOptions {
+  winstonTransports(params: ParamsLoggerInterface): WinstonModuleOptions {
     const formatOptions = {
       format: format.combine(
         format.timestamp(),

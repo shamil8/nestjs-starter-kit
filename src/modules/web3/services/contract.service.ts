@@ -11,6 +11,7 @@ import {
   EventCallbackType,
   ParseEventInterface,
 } from '../interfaces/parse-event.interface';
+import { JobInterface } from '../interfaces/job.interface';
 
 export class ContractService {
   /** sleep timeout for retry 15 seconds */
@@ -49,8 +50,6 @@ export class ContractService {
       this.web3.isHttpProvider() ? 5 : 60,
       'minute',
     );
-
-    this.subscribeToContract();
   }
 
   async subscribeToContract(): Promise<void> {
@@ -102,7 +101,11 @@ export class ContractService {
       data.event,
     )}`;
 
-    await this.producerService.addMessage(queueName, { ...data, isWs });
+    await this.producerService.addMessage<JobInterface>(queueName, {
+      ...data,
+      isWs,
+      net: this.web3.net,
+    });
   }
 
   async subscribeAllEvents(callback: EventCallbackType): Promise<void> {

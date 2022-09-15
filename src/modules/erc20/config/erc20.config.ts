@@ -4,17 +4,25 @@ import { ConfigService } from '@nestjs/config';
 import config from '../../../config';
 import { Network } from '../../web3/enums/network';
 import { erc20Abi } from '@app/contracts/erc20.abi';
-import { ContractWeb3Type } from '../../web3/interfaces/contract-web3.interface';
+import { SubscribeErc20NetInterface } from '../interfaces/subscribe-erc20-net.interface';
+import { Erc20ContractConfigType } from '../interfaces/erc20-contract-config.type';
 
 @Injectable()
 export class Erc20Config {
-  /**
-   * Contract data from mainnet or testnet for erc20
-   */
-  public readonly erc20: ContractWeb3Type;
-
   /** Queue prefix for rabbitMQ (maybe for exchange) */
   private readonly queuePrefix = 'erc20';
+
+  /**
+   * Networks those support that contract, value means isSubscribe for contract
+   */
+  public readonly networks: SubscribeErc20NetInterface = {
+    [Network.BSC]: false,
+  };
+
+  /**
+   * Contract data from 'mainnet' or 'testnet' for erc20
+   */
+  public readonly erc20: Erc20ContractConfigType;
 
   constructor(private configService: ConfigService) {
     this.erc20 = config.server.isDev

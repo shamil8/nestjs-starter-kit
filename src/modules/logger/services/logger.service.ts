@@ -2,6 +2,7 @@ import { ConsoleLogger, Inject, Injectable, Scope } from '@nestjs/common';
 import { INQUIRER } from '@nestjs/core';
 
 import { WinstonService } from './winston.service';
+import { ErrorLoggerInterface } from '../interfaces/error-logger.interface';
 
 @Injectable({ scope: Scope.TRANSIENT })
 export class LoggerService extends ConsoleLogger {
@@ -50,7 +51,7 @@ export class LoggerService extends ConsoleLogger {
    */
   error(
     message: string,
-    params: object | any[] | string = {},
+    params: ErrorLoggerInterface | any[] | string = {},
     context = this.context,
   ): void {
     this.winstonService.logger.error(message, {

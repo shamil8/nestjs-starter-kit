@@ -21,8 +21,8 @@ services:
   # Postgres SQL
   app-db:
     image: postgres
-    volumes:
-      - db-data:/var/lib/postgresql/data
+#    volumes:
+#      - db-data:/var/lib/postgresql/data
     container_name: app-db
     restart: always
     environment:
@@ -53,6 +53,6 @@ services:
       - app-db
     restart: always
     ports:
-      - "8082:8080"  # port for adminer 8081
-volumes:
-  db-data:
+      - "8082:8080"  # port for adminer 8082
+#volumes:
+#  db-data:

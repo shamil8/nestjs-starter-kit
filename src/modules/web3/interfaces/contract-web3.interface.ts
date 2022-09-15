@@ -8,5 +8,3 @@ export interface ContractInterface {
   /** Contract events for subscribe (default: allEvents!) */
   events?: string[];
 }
-
-export type ContractWeb3Type = { [key: string]: ContractInterface };
