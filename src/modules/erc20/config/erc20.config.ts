@@ -13,14 +13,14 @@ export class Erc20Config {
   private readonly queuePrefix = 'erc20';
 
   /**
-   * Networks those support that Erc20, value means isSubscribe for contract
+   * Networks those support that contract, value means isSubscribe for contract
    */
   public readonly networks: SubscribeErc20NetInterface = {
     [Network.BSC]: false,
   };
 
   /**
-   * Contract data from mainnet or testnet for erc20
+   * Contract data from 'mainnet' or 'testnet' for erc20
    */
   public readonly erc20: Erc20ContractConfigType;
 

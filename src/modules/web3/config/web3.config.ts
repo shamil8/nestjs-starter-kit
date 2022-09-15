@@ -11,6 +11,7 @@ export class Web3Config {
    */
   public providers: ProviderWeb3Interface;
 
+  /** add privateKey if you will send transactions */
   public readonly privateKey?: string;
 
   constructor(private configService: ConfigService) {

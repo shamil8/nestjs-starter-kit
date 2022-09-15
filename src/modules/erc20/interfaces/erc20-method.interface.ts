@@ -4,8 +4,9 @@ import {
   TransactionMethodInterface,
   ViewDefaultMethodType,
 } from '../../web3/interfaces/contract-method.interface';
+import { Erc20NetType } from './subscribe-erc20-net.interface';
 
-export interface Erc20MethodInterface {
+interface Erc20MethodInterface {
   /** View methods */
   readonly decimals: ViewDefaultMethodType;
   readonly name: ViewDefaultMethodType;
@@ -20,3 +21,7 @@ export interface Erc20MethodInterface {
     amount: string,
   ) => TransactionMethodInterface;
 }
+
+export type Erc20NetMethodType = {
+  [key in Erc20NetType]: Erc20MethodInterface;
+};

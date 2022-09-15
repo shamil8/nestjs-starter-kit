@@ -4,7 +4,6 @@ import BigNumber from 'bignumber.js';
 
 import { LoggerService } from '../../logger/services/logger.service';
 import { SubscribeService } from './subscribe.service';
-import { Network } from '../../web3/enums/network';
 import { Erc20NetType } from '../interfaces/subscribe-erc20-net.interface';
 
 @Injectable()
@@ -12,9 +11,7 @@ export class Erc20Service {
   constructor(
     private readonly logger: LoggerService,
     private readonly subscribeService: SubscribeService,
-  ) {
-    this.transfer('0x83b625a83f109b6dc753accfe737c62475fd2285', 1, Network.BSC);
-  }
+  ) {}
   async transfer(
     recipient: string,
     amount: number,
