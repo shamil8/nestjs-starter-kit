@@ -51,7 +51,7 @@ export class LoggerService extends ConsoleLogger {
    */
   error(
     message: string,
-    params: object | ErrorLoggerInterface | any[] | string = {},
+    params: ErrorLoggerInterface | any[] | string = {},
     context = this.context,
   ): void {
     this.winstonService.logger.error(message, {

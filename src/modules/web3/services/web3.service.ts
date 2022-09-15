@@ -72,7 +72,7 @@ export class Web3Service {
     queueName: string,
     addresses: Set<string>,
   ): Promise<void> {
-    const lastBlockNum = await this.getBlockNumber('netSubscribe');
+    const lastBlockNum = await this.getBlockNumber(this.netSubscribe.name);
     this.logger.warn('Get lastBlockNumber', { lastBlockNum });
 
     let tmpBlockNumber: number;
@@ -86,7 +86,11 @@ export class Web3Service {
         }
 
         if (error) {
-          this.logger.error('errorRes', error);
+          this.logger.error('Error, subscribe errorRes', {
+            stack: this.netSubscribe.name,
+            extra: error,
+            net: this.net,
+          });
         }
 
         tmpBlockNumber = res.blockNumber;
@@ -135,7 +139,7 @@ export class Web3Service {
     try {
       return this.web3.eth.getBlockNumber();
     } catch (e: any) {
-      this.logger.error('Error getBlockNumber', {
+      this.logger.error(`Error ${this.getBlockNumber.name}`, {
         stack,
         provider: this.getProvider(),
         extra: e,
@@ -203,15 +207,25 @@ export class Web3Service {
 
   async sendTransaction(
     transaction: TransactionMethodInterface,
-  ): Promise<TransactionReceipt> {
-    const from = this.getAccountAddress();
+  ): Promise<TransactionReceipt | null> {
+    try {
+      const from = this.getAccountAddress();
 
-    const gas = await transaction.estimateGas({ from });
+      const gas = await transaction.estimateGas({ from });
 
-    this.logger.log(`gasPrice for method '${transaction._method.name}'`, {
-      gas,
-    });
+      this.logger.log(`gasPrice for method '${transaction._method.name}'`, {
+        gas,
+      });
 
-    return transaction.send({ from, gas });
+      return transaction.send({ from, gas });
+    } catch (e: any) {
+      this.logger.error('Error, estimate gas price', {
+        stack: this.sendTransaction.name,
+        extra: e,
+        net: this.net,
+      });
+
+      return null;
+    }
   }
 }

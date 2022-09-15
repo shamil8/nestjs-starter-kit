@@ -3,4 +3,5 @@ export interface ErrorLoggerInterface {
   stack?: string;
   extra?: any;
   code?: number;
+  [key: string]: any;
 }

@@ -15,7 +15,7 @@ export class ProducerService {
     return this.amqpConnection.publish(exchange, queue, 'Hello from rabbit');
   }
 
-  public async addMessage(queue: string, request: any): Promise<void> {
+  public async addMessage<T>(queue: string, request: T): Promise<void> {
     return this.amqpConnection.publish('', queue, request);
   }
 }

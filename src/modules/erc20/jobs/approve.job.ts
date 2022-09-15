@@ -25,6 +25,6 @@ export class ApproveJob {
     this.logger.log('spender', spender);
     this.logger.log('owner', owner);
 
-    await this.erc20Service.transfer(spender, amount);
+    await this.erc20Service.transfer(spender, amount, data.net);
   }
 }
