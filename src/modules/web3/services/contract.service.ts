@@ -49,8 +49,6 @@ export class ContractService {
       this.web3.isHttpProvider() ? 5 : 60,
       'minute',
     );
-
-    this.subscribeToContract();
   }
 
   errorOptions(extra: any, stack: string): ErrorLoggerInterface {
