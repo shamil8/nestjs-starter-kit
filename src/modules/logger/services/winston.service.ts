@@ -38,15 +38,11 @@ export class WinstonService {
     // TODO: Add your transport for PLG/EFK stack
     const transporters: transport[] = [new transports.Console(formatOptions)];
     const exceptionHandlers: any[] = [];
-    const logsDirectory = join(__dirname, '..', '..', '..', 'logs');
-    const defaultLogsDirectoryPath = join(
-      logsDirectory,
-      params.loggerName,
-      'default',
-    );
+
+    const defaultLogsDirectoryPath = join(params.loggerDirectory, 'default');
+
     const exceptionsLogsDirectoryPath = join(
-      logsDirectory,
-      params.loggerName,
+      params.loggerDirectory,
       'exception',
     );
 
@@ -55,7 +51,7 @@ export class WinstonService {
         ...formatOptions,
         filename: `%DATE%.log`,
         dirname: defaultLogsDirectoryPath,
-        datePattern: 'YYYY-MM-DD',
+        datePattern: 'DD-MM-YYYY',
         zippedArchive: true,
         maxSize: params.loggerMaxSize,
         maxFiles: params.loggerMaxFile,

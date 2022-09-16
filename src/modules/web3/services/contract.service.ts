@@ -112,7 +112,8 @@ export class ContractService {
 
   async subscribeAllEvents(callback: EventCallbackType): Promise<void> {
     try {
-      const fromBlock = (await this.web3.getBlockNumber()) || 0;
+      const fromBlock =
+        (await this.web3.getBlockNumber(this.subscribeAllEvents.name)) || 0;
 
       this.contract.events
         .allEvents({ fromBlock }, (err: any) => {
@@ -144,7 +145,7 @@ export class ContractService {
 
   async parseEvents(payload: ParseEventInterface): Promise<void> {
     const limit = this.web3.parseLimit;
-    const latest = await this.web3.getBlockNumber('parseEvents');
+    const latest = await this.web3.getBlockNumber(this.parseEvents.name);
 
     if (!latest) {
       await sleepTimeout(this.sleepTime);
@@ -187,7 +188,7 @@ export class ContractService {
           const items = await this.contract.getPastEvents(event, options);
 
           for (const item of items) {
-            // isWS = false meant doesn't need to send socket event!
+            /** if http connection is true, websocket will send event to front */
             await payload.parseCallback(item, this.web3.isHttpProvider());
           }
         }

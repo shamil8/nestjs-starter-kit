@@ -16,6 +16,10 @@ export class LoggerService extends ConsoleLogger {
 
     this.context =
       typeof context === 'string' ? context : context?.constructor?.name;
+
+    if (this.context) {
+      super.setContext(this.context);
+    }
   }
 
   /**

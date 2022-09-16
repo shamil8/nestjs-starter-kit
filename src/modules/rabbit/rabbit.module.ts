@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 
 import { LoggerModule } from '../logger/logger.module';
-import { RabbitConfig } from './config/rabbit.config';
+import { rabbitConfig } from './config/rabbit.config';
 import { ConsumerService } from './services/consumer.service';
 import { ProducerService } from './services/producer.service';
 import { RabbitListener } from './listeners/rabbit.listener';
@@ -15,7 +15,7 @@ import { RabbitListener } from './listeners/rabbit.listener';
     RabbitMQModule.forRootAsync(RabbitMQModule, {
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: RabbitConfig,
+      useFactory: rabbitConfig,
     }),
     RabbitModule,
   ],

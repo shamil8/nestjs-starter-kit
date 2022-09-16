@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { DataSourceOptions } from 'typeorm/data-source/DataSourceOptions';
 
-export const DatabaseConfig = (
+export const databaseConfig = (
   configService: ConfigService,
 ): DataSourceOptions => ({
   namingStrategy: new SnakeNamingStrategy(),
@@ -16,6 +16,6 @@ export const DatabaseConfig = (
   migrations: ['dist/src/migrations/**/*.js'],
   entities: ['dist/src/modules/**/entities/*.entity.js'],
   synchronize: false,
-  logging: false,
+  logging: true,
   migrationsRun: true,
 });
