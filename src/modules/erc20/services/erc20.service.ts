@@ -3,11 +3,10 @@ import { TransactionReceipt } from 'web3-core';
 import BigNumber from 'bignumber.js';
 
 import { LoggerService } from '../../logger/services/logger.service';
-import { SubscribeService } from './subscribe.service';
 import { Web3Service } from '../../web3/services/web3.service';
-import { Erc20NetType } from '../interfaces/subscribe-erc20-net.interface';
+import { SubscribeService } from './subscribe.service';
+import { Erc20NetType } from '../interfaces/erc20-subscribe.interface';
 import { Erc20MethodInterface } from '../interfaces/erc20-method.interface';
-import { Network } from '../../web3/enums/network';
 
 @Injectable()
 export class Erc20Service {
@@ -18,11 +17,7 @@ export class Erc20Service {
   constructor(
     private readonly logger: LoggerService,
     private readonly subscribeService: SubscribeService,
-  ) {
-    // example
-    this.setNet(Network.BSC);
-    this.getAmountWithDecimals('220');
-  }
+  ) {}
 
   /** Set net if not exist */
   setNet(net: Erc20NetType): void {
@@ -33,19 +28,17 @@ export class Erc20Service {
     }
   }
 
-  async getAmountWithDecimals(amount: number | string): Promise<string> {
-    const decimals = await this.methods.decimals().call();
-
-    this.logger.log('getDecimals from erc20', { net: this.net, decimals });
-
-    return new BigNumber(amount).shiftedBy(+decimals).toString();
+  async getDecimals(): Promise<string> {
+    return this.methods.decimals().call();
   }
 
   async transfer(
     recipient: string,
     amount: number,
   ): Promise<TransactionReceipt | null> {
-    const amountStr = await this.getAmountWithDecimals(amount);
+    const decimals = await this.getDecimals();
+
+    const amountStr = new BigNumber(amount).shiftedBy(+decimals).toString();
 
     const transaction = this.methods.transfer(recipient, amountStr);
 

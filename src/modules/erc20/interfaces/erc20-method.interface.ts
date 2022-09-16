@@ -4,7 +4,7 @@ import {
   TransactionMethodInterface,
   ViewDefaultMethodType,
 } from '../../web3/interfaces/contract-method.interface';
-import { Erc20NetType } from './subscribe-erc20-net.interface';
+import { Erc20NetType } from './erc20-subscribe.interface';
 
 export interface Erc20MethodInterface {
   /** View methods */
