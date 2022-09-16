@@ -2,8 +2,8 @@ import { Extension } from 'web3-core';
 import { formatters } from 'web3-core-helpers';
 import { isString } from '@app/crypto-utils/functions/core.util';
 
-import transactionFormatter from './transaction.formatter';
-import blockFormatter from './block.formatter';
+import { blockFormatter } from './block.formatter';
+import { transactionFormatter } from './transaction.formatter';
 
 /** Extends web3 methods */
 export const extensionFormatter = {

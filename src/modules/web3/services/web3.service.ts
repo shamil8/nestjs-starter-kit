@@ -9,6 +9,7 @@ import { extensionFormatter } from '../formatters/extension.formatter';
 import { ProviderInterface } from '../interfaces/provider-web3.interface';
 import { TransactionMethodInterface } from '../interfaces/contract-method.interface';
 import { TransactionJobInterface } from '../interfaces/transaction-job.interface';
+import { ErrorLoggerInterface } from '../../logger/interfaces/error-logger.interface';
 import { LoggerService } from '../../logger/services/logger.service';
 import { ProducerService } from '../../rabbit/services/producer.service';
 import { Network } from '../enums/network';
@@ -30,6 +31,11 @@ export class Web3Service {
 
   protected web3!: Web3;
 
+  protected readonly logOptions = {
+    net: this.net,
+    context: Web3Service.name,
+  };
+
   /** Blockchain max count blocks */
   public readonly parseLimit: number;
 
@@ -41,7 +47,6 @@ export class Web3Service {
   ) {
     this.parseLimit = provider.parseLimit;
 
-    this.logger.setContext(`${Web3Service.name}__${this.net}`);
     this.initWeb3(provider.url);
   }
 
@@ -64,7 +69,10 @@ export class Web3Service {
     this.web3.eth.accounts.wallet.add(account);
     this.web3.eth.defaultAccount = account.address;
 
-    this.logger.verbose('Init web3 net', { account: account.address });
+    this.logger.verbose('Init web3 net', {
+      account: account.address,
+      ...this.logOptions,
+    });
   }
 
   async netSubscribe(
@@ -73,7 +81,10 @@ export class Web3Service {
     addresses: Set<string>,
   ): Promise<void> {
     const lastBlockNum = await this.getBlockNumber(this.netSubscribe.name);
-    this.logger.warn('Get lastBlockNumber', { lastBlockNum });
+    this.logger.warn('Get lastBlockNumber', {
+      lastBlockNum,
+      ...this.logOptions,
+    });
 
     let tmpBlockNumber: number;
 
@@ -86,11 +97,10 @@ export class Web3Service {
         }
 
         if (error) {
-          this.logger.error('Error, subscribe errorRes', {
-            stack: this.netSubscribe.name,
-            extra: error,
-            net: this.net,
-          });
+          this.logger.error(
+            'Error, subscribe errorRes',
+            this.errorOptions(error, this.netSubscribe.name),
+          );
         }
 
         tmpBlockNumber = res.blockNumber;
@@ -139,11 +149,10 @@ export class Web3Service {
     try {
       return this.web3.eth.getBlockNumber();
     } catch (e: any) {
-      this.logger.error(`Error ${this.getBlockNumber.name}`, {
-        stack,
-        provider: this.getProvider(),
-        extra: e,
-      });
+      this.logger.error(
+        `Error ${this.getBlockNumber.name}`,
+        this.errorOptions(e, stack),
+      );
 
       return null;
     }
@@ -214,18 +223,27 @@ export class Web3Service {
       const gas = await transaction.estimateGas({ from });
 
       this.logger.log(`gasPrice for method '${transaction._method.name}'`, {
+        ...this.logOptions,
         gas,
       });
 
       return transaction.send({ from, gas });
     } catch (e: any) {
-      this.logger.error('Error, estimate gas price', {
-        stack: this.sendTransaction.name,
-        extra: e,
-        net: this.net,
-      });
+      this.logger.error(
+        'Error, estimate gas price',
+        this.errorOptions(e, this.sendTransaction.name),
+      );
 
       return null;
     }
+  }
+
+  errorOptions(extra: any, stack: string): ErrorLoggerInterface {
+    return {
+      ...this.logOptions,
+      provider: this.getProvider(),
+      extra,
+      stack,
+    };
   }
 }

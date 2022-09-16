@@ -104,10 +104,4 @@ export class LoggerService extends ConsoleLogger {
       ...(typeof params === 'string' ? { text: params } : params),
     });
   }
-
-  setContext(context: string): void {
-    super.setContext(context);
-
-    this.context = context;
-  }
 }
