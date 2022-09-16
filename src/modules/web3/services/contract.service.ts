@@ -51,19 +51,9 @@ export class ContractService {
     );
   }
 
-  errorOptions(extra: any, stack: string): ErrorLoggerInterface {
-    return {
-      ...this.logOptions,
-      provider: this.web3.getProvider(),
-      address: this.contractInfo.address,
-      extra,
-      stack,
-    };
-  }
-
   async subscribeToContract(): Promise<void> {
     try {
-      this.web3.logger.warn('Subscribed in contract:', {
+      this.web3.logger.warn('Subscribed to contract:', {
         address: this.contractInfo.address,
         ...this.logOptions,
       });
@@ -244,5 +234,15 @@ export class ContractService {
         );
       }
     }
+  }
+
+  errorOptions(extra: any, stack: string): ErrorLoggerInterface {
+    return {
+      ...this.logOptions,
+      provider: this.web3.getProvider(),
+      address: this.contractInfo.address,
+      extra,
+      stack,
+    };
   }
 }
