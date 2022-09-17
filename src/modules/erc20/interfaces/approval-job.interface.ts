@@ -1,4 +1,4 @@
-import { Erc20JobInterface } from './erc20-job.interface';
+import { Erc20JobInterface } from './erc20-subscribe.interface';
 
 export interface ApprovalJobInterface extends Erc20JobInterface {
   returnValues: {

@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Erc20Config } from '../config/erc20.config';
 import { Web3Listener } from '../../web3/listeners/web3.listener';
 import { NetWeb3ServiceType } from '../../web3/interfaces/init-web3.type';
-import { SubscribeErc20NetType } from '../interfaces/subscribe-erc20-net.interface';
+import { Erc20SubscribeNetType } from '../interfaces/erc20-subscribe.interface';
 import { Erc20NetMethodType } from '../interfaces/erc20-method.interface';
 import { QueueErc20 } from '../enums/queue-erc20';
 
@@ -26,7 +26,7 @@ export class SubscribeService {
   protected initContractMethods(): void {
     for (const [net, isSubscribe] of Object.entries(
       this.erc20Config.networks,
-    ) as SubscribeErc20NetType) {
+    ) as Erc20SubscribeNetType) {
       /** Init web3 */
       this.web3[net] = this.web3Listener.web3[net];
 

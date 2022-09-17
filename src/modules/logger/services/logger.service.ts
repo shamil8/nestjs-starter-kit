@@ -16,6 +16,10 @@ export class LoggerService extends ConsoleLogger {
 
     this.context =
       typeof context === 'string' ? context : context?.constructor?.name;
+
+    if (this.context) {
+      super.setContext(this.context);
+    }
   }
 
   /**
@@ -103,11 +107,5 @@ export class LoggerService extends ConsoleLogger {
       context,
       ...(typeof params === 'string' ? { text: params } : params),
     });
-  }
-
-  setContext(context: string): void {
-    super.setContext(context);
-
-    this.context = context;
   }
 }

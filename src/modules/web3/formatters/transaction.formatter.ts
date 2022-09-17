@@ -2,7 +2,7 @@ import utils from 'web3-utils';
 import { formatters } from 'web3-core-helpers';
 import { Transaction } from 'web3-core';
 
-const transactionFormatter = (tx: any): Transaction => {
+export const transactionFormatter = (tx: any): Transaction => {
   if (tx.blockNumber !== null) {
     tx.blockNumber = utils.hexToNumber(tx.blockNumber);
   }
@@ -29,5 +29,3 @@ const transactionFormatter = (tx: any): Transaction => {
 
   return tx;
 };
-
-export default transactionFormatter;

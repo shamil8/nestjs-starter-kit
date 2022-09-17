@@ -9,11 +9,22 @@ import { Erc20Module } from './modules/erc20/erc20.module';
 
 @Module({
   imports: [
+    /** Logger module */
     LoggerModule,
+
+    /** Database module */
     DatabaseModule,
+
+    /** RabbitMQ module */
     RabbitModule,
-    Web3Module,
+
+    /** Application modules */
     UserModule,
+
+    /** Blockchain modules */
+    Web3Module,
+
+    /** Blockchain contract modules */
     Erc20Module,
   ],
 })

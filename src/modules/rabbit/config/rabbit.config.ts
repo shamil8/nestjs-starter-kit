@@ -3,7 +3,7 @@ import { RabbitMQConfig } from '@golevelup/nestjs-rabbitmq/lib/rabbitmq.interfac
 
 import { ExchangeRabbit } from '../enums/exchange-rabbit';
 
-export const RabbitConfig = (configService: ConfigService): RabbitMQConfig => ({
+export const rabbitConfig = (configService: ConfigService): RabbitMQConfig => ({
   exchanges: [
     {
       name: ExchangeRabbit.exchangeExample,

@@ -6,6 +6,7 @@ import { Web3Service } from './web3.service';
 import { ParserInfoRepository } from '../repositories/parser-info.repository';
 import { ContractInterface } from '../interfaces/contract-web3.interface';
 import { ProducerService } from '../../rabbit/services/producer.service';
+import { ErrorLoggerInterface } from '../../logger/interfaces/error-logger.interface';
 import { EventDataInterface } from '../interfaces/event-data.interface';
 import {
   EventCallbackType,
@@ -23,11 +24,9 @@ export class ContractService {
   /** parse interval time */
   private readonly parseIntervalTime!: number;
 
-  private readonly errorOptions = {
-    provider: this.web3.getProvider(),
-    address: this.contractInfo.address,
+  protected readonly logOptions = {
     net: this.web3.net,
-    stack: ContractService.name,
+    context: ContractService.name,
   };
 
   constructor(
@@ -54,9 +53,9 @@ export class ContractService {
 
   async subscribeToContract(): Promise<void> {
     try {
-      this.web3.logger.warn('Subscribed in contract:', {
+      this.web3.logger.warn('Subscribed to contract:', {
         address: this.contractInfo.address,
-        net: this.web3.net,
+        ...this.logOptions,
       });
 
       if (!this.web3.isHttpProvider()) {
@@ -65,10 +64,10 @@ export class ContractService {
 
       this.parseEventsLoop(this.eventCallback.bind(this));
     } catch (e: any) {
-      this.web3.logger.error('Can not call web3 method with provider:', {
-        ...this.errorOptions,
-        extra: e,
-      });
+      this.web3.logger.error(
+        'Can not call web3 method with provider:',
+        this.errorOptions(e, this.subscribeToContract.name),
+      );
     }
   }
 
@@ -76,7 +75,10 @@ export class ContractService {
     if (!data.event) {
       this.web3.logger.error(
         'Event data without event name, transactionHash:',
-        { stack: ContractService.name, transactionHash: data.transactionHash },
+        {
+          ...this.errorOptions('Error', this.eventCallback.name),
+          transactionHash: data.transactionHash,
+        },
       );
 
       return;
@@ -110,39 +112,40 @@ export class ContractService {
 
   async subscribeAllEvents(callback: EventCallbackType): Promise<void> {
     try {
-      const fromBlock = (await this.web3.getBlockNumber()) || 0;
+      const fromBlock =
+        (await this.web3.getBlockNumber(this.subscribeAllEvents.name)) || 0;
 
       this.contract.events
         .allEvents({ fromBlock }, (err: any) => {
           if (err) {
-            this.web3.logger.error('subscribeAllEvents allEvents:', {
-              stack: ContractService.name,
-              extra: err,
-            });
+            this.web3.logger.error(
+              'Error allEvents:',
+              this.errorOptions(err, this.subscribeAllEvents.name),
+            );
 
             this.subscribeAllEvents(callback);
           }
         })
         .on('data', callback)
         .on('error', (err: any) => {
-          this.web3.logger.error('subscribeAllEvents eventError:', {
-            stack: ContractService.name,
-            extra: err,
-          });
+          this.web3.logger.error(
+            'Error eventError:',
+            this.errorOptions(err, this.subscribeAllEvents.name),
+          );
 
           this.subscribeAllEvents(callback);
         });
     } catch (e: any) {
-      this.web3.logger.error('Error subscribeAllEvents:', {
-        stack: ContractService.name,
-        extra: e,
-      });
+      this.web3.logger.error(
+        `Error in ${this.subscribeAllEvents.name}:`,
+        this.errorOptions(e, this.subscribeAllEvents.name),
+      );
     }
   }
 
   async parseEvents(payload: ParseEventInterface): Promise<void> {
     const limit = this.web3.parseLimit;
-    const latest = await this.web3.getBlockNumber('parseEvents');
+    const latest = await this.web3.getBlockNumber(this.parseEvents.name);
 
     if (!latest) {
       await sleepTimeout(this.sleepTime);
@@ -154,7 +157,10 @@ export class ContractService {
     let { fromBlock } = payload;
     let events = this.contractInfo.events;
 
-    this.web3.logger.log('parseEvents lastBlockNumber', { latest });
+    this.web3.logger.log(`${this.parseEvents.name} lastBlockNumber`, {
+      latest,
+      ...this.logOptions,
+    });
 
     for (
       let toBlock = fromBlock + limit;
@@ -166,10 +172,9 @@ export class ContractService {
         toBlock: toBlock <= latest ? toBlock : latest,
       };
 
-      this.web3.logger.warn('Parse:', {
+      this.web3.logger.warn(`Parse from ${this.parseEvents.name}:`, {
         options,
-        net: this.web3.net,
-        stack: ContractService.name,
+        ...this.logOptions,
       });
 
       !events && (events = ['allEvents']);
@@ -183,7 +188,7 @@ export class ContractService {
           const items = await this.contract.getPastEvents(event, options);
 
           for (const item of items) {
-            // isWS = false meant doesn't need to send socket event!
+            /** if http connection is true, websocket will send event to front */
             await payload.parseCallback(item, this.web3.isHttpProvider());
           }
         }
@@ -194,10 +199,10 @@ export class ContractService {
           address: this.contractInfo.address,
         });
       } catch (e: any) {
-        this.web3.logger.error('Error parseEvents starting timeout:', {
-          ...this.errorOptions,
-          extra: e,
-        });
+        this.web3.logger.error(
+          'Error starting timeout:',
+          this.errorOptions(e, this.parseEvents.name),
+        );
 
         await sleepTimeout(this.sleepTime);
         await this.parseEvents(payload); // repeat if got error
@@ -224,11 +229,21 @@ export class ContractService {
 
         await sleepTimeout(this.parseIntervalTime);
       } catch (e: any) {
-        this.web3.logger.error('Error parseEventsLoop:', {
-          ...this.errorOptions,
-          extra: e,
-        });
+        this.web3.logger.error(
+          'Error parse events loop:',
+          this.errorOptions(e, this.parseEventsLoop.name),
+        );
       }
     }
+  }
+
+  errorOptions(extra: any, stack: string): ErrorLoggerInterface {
+    return {
+      ...this.logOptions,
+      provider: this.web3.getProvider(),
+      address: this.contractInfo.address,
+      extra,
+      stack,
+    };
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+
 import { LoggerService } from '../../logger/services/logger.service';
 
 @Injectable()
@@ -10,7 +11,7 @@ export class ProducerService {
   ) {}
 
   public async sayHelloExchange(queue: string, exchange = ''): Promise<void> {
-    this.logger.log('sayHelloExchange | sent a message!');
+    this.logger.log(`${this.sayHelloExchange.name} | sent a message!`);
 
     return this.amqpConnection.publish(exchange, queue, 'Hello from rabbit');
   }
