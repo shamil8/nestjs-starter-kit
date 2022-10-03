@@ -1,5 +1,5 @@
 import Web3 from 'web3';
-import { AbiItem } from 'web3-utils';
+import { AbiItem, Mixed } from 'web3-utils';
 import { BlockTransactionString } from 'web3-eth';
 import { Contract } from 'web3-eth-contract';
 import { Transaction, Sign, TransactionReceipt, BlockNumber } from 'web3-core';
@@ -10,9 +10,11 @@ import { ProviderInterface } from '../interfaces/provider-web3.interface';
 import { TransactionMethodInterface } from '../interfaces/contract-method.interface';
 import { TransactionJobInterface } from '../interfaces/transaction-job.interface';
 import { ErrorLoggerInterface } from '../../logger/interfaces/error-logger.interface';
+import { SendEncodeTransactionInterface } from '../interfaces/send-encode-transaction.interface';
 import { LoggerService } from '../../logger/services/logger.service';
 import { ProducerService } from '../../rabbit/services/producer.service';
 import { Network } from '../enums/network';
+import { QueueWeb3 } from '../enums/queue-web3';
 
 export class Web3Service {
   protected websocketOptions: WebsocketProviderOptions = {
@@ -77,7 +79,6 @@ export class Web3Service {
 
   async netSubscribe(
     producer: ProducerService,
-    queueName: string,
     addresses: Set<string>,
   ): Promise<void> {
     const lastBlockNum = await this.getBlockNumber(this.netSubscribe.name);
@@ -128,7 +129,7 @@ export class Web3Service {
           walletAddress,
         };
 
-        await producer.addMessage(queueName, queueData);
+        await producer.addMessage(QueueWeb3.getTransaction, queueData);
       },
     );
   }
@@ -174,7 +175,7 @@ export class Web3Service {
     return this.web3.utils.toHex(price);
   }
 
-  createSignature(data: string[]): Sign | null {
+  createSignature(data: Mixed[]): Sign | null {
     const sha3 = this.web3.utils.soliditySha3(...data);
 
     if (!sha3 || !this.privateKey) {
@@ -214,6 +215,36 @@ export class Web3Service {
     }
   }
 
+  async sendEncodeTransaction(
+    transaction: TransactionMethodInterface,
+    producer: ProducerService,
+  ): Promise<void> {
+    try {
+      const from = this.getAccountAddress();
+
+      const gas = await transaction.estimateGas({ from });
+
+      this.logger.log(`gasPrice for method '${transaction._method.name}'`, {
+        ...this.logOptions,
+        gas,
+      });
+
+      return producer.addMessage<SendEncodeTransactionInterface>(
+        QueueWeb3.sendTransaction,
+        {
+          encodeData: transaction.encodeABI(),
+          contractAddress: transaction._parent._address.toLowerCase(),
+          net: this.net,
+        },
+      );
+    } catch (e: any) {
+      this.logger.error(
+        'Error, estimate gas price',
+        this.errorOptions(e, this.sendEncodeTransaction.name),
+      );
+    }
+  }
+
   async sendTransaction(
     transaction: TransactionMethodInterface,
   ): Promise<TransactionReceipt | null> {
@@ -230,7 +261,7 @@ export class Web3Service {
       return transaction.send({ from, gas });
     } catch (e: any) {
       this.logger.error(
-        'Error, estimate gas price',
+        'Error, estimate gas or sending transaction',
         this.errorOptions(e, this.sendTransaction.name),
       );
 
@@ -239,10 +270,12 @@ export class Web3Service {
   }
 
   errorOptions(extra: any, stack: string): ErrorLoggerInterface {
+    const error = Error(extra);
+
     return {
       ...this.logOptions,
       provider: this.getProvider(),
-      extra,
+      extra: { message: error.message, name: error.name, stack: error.stack },
       stack,
     };
   }

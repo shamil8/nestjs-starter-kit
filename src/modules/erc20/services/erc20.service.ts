@@ -38,6 +38,11 @@ export class Erc20Service {
   ): Promise<TransactionReceipt | null> {
     const decimals = await this.getDecimals();
 
+    this.logger.log(`${this.getDecimals.name} from erc20`, {
+      net: this.net,
+      decimals,
+    });
+
     const amountStr = new BigNumber(amount).shiftedBy(+decimals).toString();
 
     const transaction = this.methods.transfer(recipient, amountStr);

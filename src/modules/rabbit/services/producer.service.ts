@@ -11,7 +11,7 @@ export class ProducerService {
   ) {}
 
   public async sayHelloExchange(queue: string, exchange = ''): Promise<void> {
-    this.logger.log(`${this.sayHelloExchange.name} | sent a message!`);
+    this.logger.log('sayHelloExchange | sent a message!');
 
     return this.amqpConnection.publish(exchange, queue, 'Hello from rabbit');
   }
