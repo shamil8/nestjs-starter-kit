@@ -12,7 +12,7 @@ import { ContractService } from '../services/contract.service';
 import { ParserInfoRepository } from '../repositories/parser-info.repository';
 import { LoggerService } from '../../logger/services/logger.service';
 
-type QueueNameType = { [key: string]: string };
+type QueueNameType = { [eventName: string]: string };
 
 @Injectable()
 export class Web3Listener {

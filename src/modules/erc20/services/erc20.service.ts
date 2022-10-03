@@ -7,6 +7,7 @@ import { Web3Service } from '../../web3/services/web3.service';
 import { SubscribeService } from './subscribe.service';
 import { Erc20NetType } from '../interfaces/erc20-subscribe.interface';
 import { Erc20MethodInterface } from '../interfaces/erc20-method.interface';
+import { Network } from '../../web3/enums/network';
 
 @Injectable()
 export class Erc20Service {
@@ -17,7 +18,9 @@ export class Erc20Service {
   constructor(
     private readonly logger: LoggerService,
     private readonly subscribeService: SubscribeService,
-  ) {}
+  ) {
+    setTimeout(this.getExample.bind(this), 5000);
+  }
 
   /** Set net if not exist */
   setNet(net: Erc20NetType): void {
@@ -26,6 +29,13 @@ export class Erc20Service {
       this.web3 = this.subscribeService.web3[net];
       this.methods = this.subscribeService.erc20Methods[net];
     }
+  }
+
+  async getExample(): Promise<void> {
+    this.setNet(Network.BSC);
+    const decimals = await this.getDecimals();
+
+    console.log('exampleee', decimals);
   }
 
   async getDecimals(): Promise<string> {
