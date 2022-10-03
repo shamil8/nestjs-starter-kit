@@ -23,5 +23,5 @@ export interface Erc20MethodInterface {
 }
 
 export type Erc20NetMethodType = {
-  [key in Erc20NetType]: Erc20MethodInterface;
+  [net in Erc20NetType]: Erc20MethodInterface;
 };

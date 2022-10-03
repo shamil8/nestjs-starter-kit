@@ -1,5 +1,5 @@
 /**
- * Any type of currency id
+ * Any type of blockchain networks
  */
 export enum Network {
   ETH = 'ETH',

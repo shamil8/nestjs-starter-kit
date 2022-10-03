@@ -7,6 +7,7 @@ import { PromiEvent, TransactionReceipt } from 'web3-core';
 
 export interface TransactionMethodInterface {
   _method: { name: string };
+  _parent: { _address: string };
 
   send(
     options: SendOptions,
@@ -14,8 +15,16 @@ export interface TransactionMethodInterface {
   ): PromiEvent<TransactionReceipt>;
 
   estimateGas(options: EstimateGasOptions): Promise<number>;
+
+  encodeABI(): string;
+
+  arguments: string[];
 }
 
 export type ViewDefaultMethodType = () => {
   call(options?: CallOptions): Promise<string>;
+};
+
+export type ViewMethodType<T> = () => {
+  call(options?: CallOptions): Promise<T>;
 };
