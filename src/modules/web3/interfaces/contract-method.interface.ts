@@ -21,10 +21,6 @@ export interface TransactionMethodInterface {
   arguments: string[];
 }
 
-export type ViewDefaultMethodType = () => {
-  call(options?: CallOptions): Promise<string>;
-};
-
-export type ViewMethodType<T> = () => {
+export type ViewMethodType<T = string> = () => {
   call(options?: CallOptions): Promise<T>;
 };

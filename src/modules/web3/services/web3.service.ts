@@ -10,7 +10,7 @@ import { ProviderInterface } from '../interfaces/provider-web3.interface';
 import { TransactionMethodInterface } from '../interfaces/contract-method.interface';
 import { TransactionJobInterface } from '../interfaces/transaction-job.interface';
 import { ErrorLoggerInterface } from '../../logger/interfaces/error-logger.interface';
-import { SendEncodeTransactionInterface } from '../interfaces/send-encode-transaction.interface';
+import { EncodeSendTransactionInterface } from '../interfaces/encode-send-transaction.interface';
 import { LoggerService } from '../../logger/services/logger.service';
 import { ProducerService } from '../../rabbit/services/producer.service';
 import { Network } from '../enums/network';
@@ -42,6 +42,8 @@ export class Web3Service {
   public readonly parseLimit: number;
 
   constructor(
+    /** producer for broker */
+    private readonly producerService: ProducerService,
     public readonly logger: LoggerService,
     public readonly net: Network,
     private readonly provider: ProviderInterface,
@@ -77,10 +79,7 @@ export class Web3Service {
     });
   }
 
-  async netSubscribe(
-    producer: ProducerService,
-    addresses: Set<string>,
-  ): Promise<void> {
+  async netSubscribe(addresses: Set<string>): Promise<void> {
     const lastBlockNum = await this.getBlockNumber(this.netSubscribe.name);
     this.logger.warn('Get lastBlockNumber', {
       lastBlockNum,
@@ -129,7 +128,10 @@ export class Web3Service {
           walletAddress,
         };
 
-        await producer.addMessage(QueueWeb3.getTransaction, queueData);
+        await this.producerService.addMessage(
+          QueueWeb3.getTransaction,
+          queueData,
+        );
       },
     );
   }
@@ -217,19 +219,21 @@ export class Web3Service {
 
   async sendEncodeTransaction(
     transaction: TransactionMethodInterface,
-    producer: ProducerService,
+    isEstimate = true,
   ): Promise<void> {
     try {
       const from = this.getAccountAddress();
 
-      const gas = await transaction.estimateGas({ from });
+      if (isEstimate) {
+        const gas = await transaction.estimateGas({ from });
 
-      this.logger.log(`gasPrice for method '${transaction._method.name}'`, {
-        ...this.logOptions,
-        gas,
-      });
+        this.logger.log(`gasPrice for method '${transaction._method.name}'`, {
+          ...this.logOptions,
+          gas,
+        });
+      }
 
-      return producer.addMessage<SendEncodeTransactionInterface>(
+      return this.producerService.addMessage<EncodeSendTransactionInterface>(
         QueueWeb3.sendTransaction,
         {
           encodeData: transaction.encodeABI(),
@@ -242,31 +246,24 @@ export class Web3Service {
         'Error, estimate gas price',
         this.errorOptions(e, this.sendEncodeTransaction.name),
       );
+
+      throw Error(e);
     }
   }
 
   async sendTransaction(
     transaction: TransactionMethodInterface,
   ): Promise<TransactionReceipt | null> {
-    try {
-      const from = this.getAccountAddress();
+    const from = this.getAccountAddress();
 
-      const gas = await transaction.estimateGas({ from });
+    const gas = await transaction.estimateGas({ from });
 
-      this.logger.log(`gasPrice for method '${transaction._method.name}'`, {
-        ...this.logOptions,
-        gas,
-      });
+    this.logger.log(`gasPrice for method '${transaction._method.name}'`, {
+      ...this.logOptions,
+      gas,
+    });
 
-      return transaction.send({ from, gas });
-    } catch (e: any) {
-      this.logger.error(
-        'Error, estimate gas or sending transaction',
-        this.errorOptions(e, this.sendTransaction.name),
-      );
-
-      return null;
-    }
+    return transaction.send({ from, gas });
   }
 
   errorOptions(extra: any, stack: string): ErrorLoggerInterface {

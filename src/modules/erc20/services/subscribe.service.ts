@@ -4,7 +4,7 @@ import { Erc20Config } from '../config/erc20.config';
 import { Web3Listener } from '../../web3/listeners/web3.listener';
 import { NetWeb3ServiceType } from '../../web3/interfaces/init-web3.type';
 import { Erc20SubscribeNetType } from '../interfaces/erc20-subscribe.interface';
-import { Erc20NetMethodType } from '../interfaces/erc20-method.interface';
+import { Erc20NetMethodType } from '../interfaces/erc20-methods/erc20-method.interface';
 import { QueueErc20 } from '../enums/queue-erc20';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class SubscribeService {
     private readonly erc20Config: Erc20Config,
     private readonly web3Listener: Web3Listener,
   ) {
-    /** Init web3 for all erc20 contracts (with subscribe to those or not) */
+    /** Init web3 for all erc20-methods contracts (with subscribe to those or not) */
     this.initContractMethods();
   }
 
@@ -30,19 +30,12 @@ export class SubscribeService {
       /** Init web3 */
       this.web3[net] = this.web3Listener.web3[net];
 
-      /** Check event enums if we will subscribe to them */
-      if (isSubscribe) {
-        this.web3Listener.checkQueueEnum(
-          this.erc20Config.erc20[net],
-          Object.entries(QueueErc20),
-        );
-      }
-
       /** Get contract methods */
       this.erc20Methods[net] = this.web3Listener.listenContract(
         net,
         this.erc20Config.erc20[net],
         isSubscribe,
+        Object.entries(QueueErc20),
       );
     }
   }

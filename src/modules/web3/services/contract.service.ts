@@ -1,6 +1,7 @@
 import { Contract } from 'web3-eth-contract';
 import { camelToSnakeCase } from '@app/crypto-utils/functions/core.util';
 import { sleepTimeout, timeToMs } from '@app/crypto-utils/functions/time.util';
+import { convertFieldsObject } from '@app/crypto-utils/functions/crypto.util';
 
 import { Web3Service } from './web3.service';
 import { ParserInfoRepository } from '../repositories/parser-info.repository';
@@ -37,7 +38,7 @@ export class ContractService {
     /** parser info repository */
     private readonly parserRepository: ParserInfoRepository,
 
-    /** parser info repository */
+    /** producer for broker */
     private readonly producerService: ProducerService,
   ) {
     this.contract = this.web3.createContract(
@@ -45,10 +46,9 @@ export class ContractService {
       this.contractInfo.address,
     );
 
-    this.parseIntervalTime = timeToMs(
-      this.web3.isHttpProvider() ? 5 : 60,
-      'minute',
-    );
+    this.parseIntervalTime = this.web3.isHttpProvider()
+      ? timeToMs(10, 'second')
+      : timeToMs(6, 'minute');
   }
 
   async subscribeToContract(): Promise<void> {
@@ -92,11 +92,7 @@ export class ContractService {
     delete data.removed;
     delete data.id;
 
-    for (const [key] of Object.entries(data.returnValues)) {
-      if (!Number.isNaN(Number(key))) {
-        delete data.returnValues[key];
-      }
-    }
+    data.returnValues = convertFieldsObject(data.returnValues);
 
     /** Sending to broker */
     const queueName = `${this.contractInfo.queuePrefix}.${camelToSnakeCase(
@@ -169,7 +165,7 @@ export class ContractService {
     ) {
       const options = {
         fromBlock,
-        toBlock: toBlock <= latest ? toBlock : latest,
+        toBlock: toBlock - fromBlock < limit ? 'latest' : toBlock,
       };
 
       this.web3.logger.warn(`Parse from ${this.parseEvents.name}:`, {
@@ -178,10 +174,6 @@ export class ContractService {
       });
 
       !events && (events = ['allEvents']);
-
-      if (fromBlock >= options.toBlock) {
-        return;
-      }
 
       try {
         for (const event of events) {
@@ -194,7 +186,7 @@ export class ContractService {
         }
 
         await this.parserRepository.storeParserInfo({
-          lastBlock: String(options.toBlock),
+          lastBlock: String(toBlock <= latest ? toBlock : latest),
           net: this.web3.net,
           address: this.contractInfo.address,
         });
