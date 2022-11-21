@@ -1,0 +1,25 @@
+import { forwardRef, Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+
+import { LoggerModule } from '../logger/logger.module';
+import { AuthService } from './services/auth.service';
+import { UserModule } from '../users/user.module';
+import { AuthController } from './controllers/auth.controller';
+import { AuthConfig } from './config/auth.config';
+import { ConfigModule } from '@nestjs/config';
+import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
+
+@Module({
+  imports: [ConfigModule, LoggerModule, JwtModule.register({}), forwardRef(() => UserModule),],
+  controllers: [AuthController],
+  providers: [
+    //config
+    AuthConfig,
+
+    // services
+    AuthService,
+    JwtAccessStrategy,
+  ],
+  exports: [AuthService, AuthConfig],
+})
+export class AuthModule {}
