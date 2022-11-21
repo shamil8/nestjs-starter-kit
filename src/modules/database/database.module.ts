@@ -6,6 +6,7 @@ import { LoggerModule } from '../logger/logger.module';
 import { databaseConfig } from './config/database.config';
 import { LoggerService } from '../logger/services/logger.service';
 import { DatabaseLoggerService } from './services/database-logger.service';
+import { BackupListener } from './listeners/backup.listener';
 
 @Global()
 @Module({
@@ -19,5 +20,6 @@ import { DatabaseLoggerService } from './services/database-logger.service';
       }),
     }),
   ],
+  providers: [BackupListener],
 })
 export class DatabaseModule {}
