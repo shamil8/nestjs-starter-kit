@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { UserEntity } from '../../users/entities/user.entity';
 import { AuthCommand } from '../dto/command/auth.command';
 import { LoggerService } from '../../logger/services/logger.service';
 import { AuthConfig } from '../config/auth.config';
@@ -19,11 +18,9 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  private createTokens(user: UserEntity): JwtResponseInterface {
-    const payload: JwtValidatePayloadInterface = {
-      id: user.id,
-    };
-
+  private createTokens(
+    payload: JwtValidatePayloadInterface,
+  ): JwtResponseInterface {
     const accessToken = this.jwtService.sign(payload, {
       secret: this.authConfig.jwt.access.secret,
       expiresIn: this.authConfig.jwt.access.lifetime,
@@ -34,10 +31,7 @@ export class AuthService {
       expiresIn: this.authConfig.jwt.refresh.lifetime,
     });
 
-    return {
-      accessToken,
-      refreshToken,
-    } as JwtResponseInterface;
+    return { accessToken, refreshToken };
   }
 
   async login(data: AuthCommand): Promise<JwtResponseInterface> {
@@ -54,6 +48,6 @@ export class AuthService {
       );
     }
 
-    return this.createTokens(user);
+    return this.createTokens({ id: user.id });
   }
 }

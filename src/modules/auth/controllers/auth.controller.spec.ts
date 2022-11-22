@@ -8,9 +8,9 @@ import { DatabaseModule } from '../../database/database.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from '../services/auth.service';
 import { AuthCommand } from '../dto/command/auth.command';
-import { JwtPayload } from '../strategies/jwt-access.strategy';
 import { UserRepository } from '../../users/repositories/user.repository';
 import { AuthServiceError } from '../enums/auth-service-error';
+import { JwtValidatePayloadInterface } from '../interfaces/jwt-validate-payload.interface';
 
 interface SignInOptions {
   isBadUser?: boolean;
@@ -89,9 +89,10 @@ class AuthModuleTest {
         expect(typeof response.accessToken).toBe('string');
         expect(typeof response.refreshToken).toBe('string');
 
-        const jwtPayload = <JwtPayload>(
-          this.jwtService.decode(response.accessToken)
-        );
+        const jwtPayload = this.jwtService.decode(
+          response.accessToken,
+        ) as JwtValidatePayloadInterface;
+
         expect(jwtPayload.id).toBe(user.id);
       } catch (err) {
         if (!(err instanceof HttpException)) {
