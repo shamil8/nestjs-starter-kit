@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 
-import { RabbitModule } from '../rabbit/rabbit.module';
 import { LoggerModule } from '../logger/logger.module';
+import { RabbitModule } from '../rabbit/rabbit.module';
 import { Web3Config } from './config/web3.config';
 import { ParserInfoEntity } from './entities/parser-info.entity';
 import { ParserInfoRepository } from './repositories/parser-info.repository';

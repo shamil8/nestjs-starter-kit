@@ -4,10 +4,10 @@ The repository provides examples of the main toolkit used to write a basic servi
 
 ### Required
 
-1. NodeJS v16.15.0
-2. Postgres 12
-3. RabbitMQ
-4. Redis
+1. NodeJS v16
+2. Postgres 15.1
+3. RabbitMQ 3.11.3
+4. Redis 7
 
 ### Service start:
 

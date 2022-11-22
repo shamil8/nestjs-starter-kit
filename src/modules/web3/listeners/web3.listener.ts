@@ -35,6 +35,7 @@ export class Web3Listener {
       const provider = this.web3Config.providers[net];
 
       web3[net] = new Web3Service(
+        this.producerService,
         this.logger,
         net,
         provider,
@@ -49,6 +50,7 @@ export class Web3Listener {
     net: Network,
     contractConfig: ContractInterface,
     isSubscribe = true,
+    queueEnum: null | [string, string][] = null,
   ): any {
     const contractWeb3Listener = new ContractService(
       this.web3[net],
@@ -58,6 +60,9 @@ export class Web3Listener {
     );
 
     if (isSubscribe) {
+      /** Check event enums if we will subscribe to them */
+      queueEnum && this.checkQueueEnum(contractConfig, queueEnum);
+
       contractWeb3Listener.subscribeToContract();
     }
 
@@ -80,7 +85,7 @@ export class Web3Listener {
     return queueNames;
   }
 
-  public checkQueueEnum<T>(
+  private checkQueueEnum<T>(
     contractConfig: ContractInterface,
     names: [string, T][],
   ): void {
@@ -107,6 +112,6 @@ export class Web3Listener {
       this.logger.warn(`Maybe need to add Enum for these queues: ${text}`, {
         context: Web3Listener.name,
       });
-    }, timeToMs(2));
+    }, timeToMs(5, 'second'));
   }
 }

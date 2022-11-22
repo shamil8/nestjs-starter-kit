@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { TransactionReceipt } from 'web3-core';
-import BigNumber from 'bignumber.js';
+import { BigNumber } from '@app/crypto-utils/functions/export-settings';
 
 import { LoggerService } from '../../logger/services/logger.service';
 import { Web3Service } from '../../web3/services/web3.service';
 import { SubscribeService } from './subscribe.service';
 import { Erc20NetType } from '../interfaces/erc20-subscribe.interface';
-import { Erc20MethodInterface } from '../interfaces/erc20-method.interface';
+import { Erc20MethodInterface } from '../interfaces/erc20-methods/erc20-method.interface';
 import { Network } from '../../web3/enums/network';
 
 @Injectable()
@@ -53,7 +53,9 @@ export class Erc20Service {
       decimals,
     });
 
-    const amountStr = new BigNumber(amount).shiftedBy(+decimals).toString();
+    const amountStr = BigNumber(amount)
+      .shiftedBy(+decimals)
+      .toString();
 
     const transaction = this.methods.transfer(recipient, amountStr);
 

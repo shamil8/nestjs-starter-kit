@@ -3,6 +3,9 @@
 /node_modules
 /src/*.js
 
+# docs
+/documentation
+
 # Logs
 logs
 *.log
@@ -19,7 +22,13 @@ lerna-debug.log*
 /coverage
 /.nyc_output
 
-# IDEs and editors
+# IDEs editors
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
 /.idea
 .project
 .classpath
@@ -27,12 +36,5 @@ lerna-debug.log*
 *.launch
 .settings/
 *.sublime-workspace
-
-# IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 
 .env

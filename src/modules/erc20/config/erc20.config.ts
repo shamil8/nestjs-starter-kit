@@ -22,7 +22,7 @@ export class Erc20Config {
   };
 
   /**
-   * Contract data from 'mainnet' or 'testnet' for erc20
+   * Contract data from 'mainnet' or 'testnet' for erc20-methods
    */
   public readonly erc20: Erc20ConfigType;
 
