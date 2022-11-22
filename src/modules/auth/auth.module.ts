@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 
 import { LoggerModule } from '../logger/logger.module';
@@ -10,7 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 
 @Module({
-  imports: [ConfigModule, LoggerModule, JwtModule.register({}), forwardRef(() => UserModule),],
+  imports: [ConfigModule, LoggerModule, JwtModule.register({}), UserModule],
   controllers: [AuthController],
   providers: [
     //config
