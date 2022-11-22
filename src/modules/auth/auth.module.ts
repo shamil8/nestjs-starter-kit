@@ -16,10 +16,11 @@ import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
     //config
     AuthConfig,
 
+    // strategies
+    JwtAccessStrategy,
+
     // services
     AuthService,
-    JwtAccessStrategy,
   ],
-  exports: [AuthService, AuthConfig],
 })
 export class AuthModule {}
