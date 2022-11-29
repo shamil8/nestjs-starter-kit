@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 
-import { LoggerModule } from '../logger/logger.module';
 import { rabbitConfig } from './config/rabbit.config';
+import { LoggerModule } from '../logger/logger.module';
 import { ConsumerService } from './services/consumer.service';
 import { ProducerService } from './services/producer.service';
 import { RabbitListener } from './listeners/rabbit.listener';
@@ -17,7 +17,6 @@ import { RabbitListener } from './listeners/rabbit.listener';
       inject: [ConfigService],
       useFactory: rabbitConfig,
     }),
-    RabbitModule,
   ],
   providers: [
     // services
