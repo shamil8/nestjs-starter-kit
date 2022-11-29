@@ -1,11 +1,24 @@
-import { Entity, Column, BeforeInsert, BeforeUpdate } from 'typeorm';
+import {
+  Entity,
+  Column,
+  BeforeInsert,
+  BeforeUpdate,
+  PrimaryColumn,
+} from 'typeorm';
 import { genSaltSync, hashSync, compareSync } from 'bcrypt';
+import { getUUID } from '@app/crypto-utils/functions/export-settings';
 
 import { BaseEntity } from '../../database/entities/base.entity';
 import { UserRole } from '../enums/user-role';
+import { generatePkName } from '../../database/utils/generate-constraint';
 
-@Entity({ schema: 'users', name: 'users' })
+const tableName = 'users';
+
+@Entity({ schema: 'users', name: tableName })
 export class UserEntity extends BaseEntity {
+  @PrimaryColumn(generatePkName(tableName))
+  id: string = getUUID();
+
   @Column()
   email!: string;
 
