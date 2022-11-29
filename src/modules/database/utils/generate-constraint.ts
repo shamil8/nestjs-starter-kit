@@ -3,7 +3,6 @@
  * @param tableName - table name like user_wallets
  * @param columns - for example 'wallet_id' or 'wallet_id', 'merchant_id'
  */
-
 export function generatePkName(
   tableName: string,
   ...columns: string[]
