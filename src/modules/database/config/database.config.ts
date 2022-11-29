@@ -1,11 +1,12 @@
 import { ConfigService } from '@nestjs/config';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { DataSourceOptions } from 'typeorm/data-source/DataSourceOptions';
+
+import { CustomNamingStrategy } from '../utils/custom-naming-strategy';
 
 export const databaseConfig = (
   configService: ConfigService,
 ): DataSourceOptions => ({
-  namingStrategy: new SnakeNamingStrategy(),
+  namingStrategy: new CustomNamingStrategy(),
   name: 'default',
   type: 'postgres',
   host: configService.getOrThrow('DB_HOST'),
