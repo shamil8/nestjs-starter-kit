@@ -6,6 +6,7 @@ import { databaseConfig } from './config/database.config';
 import { LoggerModule } from '../logger/logger.module';
 import { LoggerService } from '../logger/services/logger.service';
 import { DatabaseLoggerService } from './services/database-logger.service';
+import { QueryRunnerService } from './services/query-runner.service';
 import { BackupListener } from './listeners/backup.listener';
 
 @Global()
@@ -20,6 +21,7 @@ import { BackupListener } from './listeners/backup.listener';
       }),
     }),
   ],
-  providers: [BackupListener],
+  providers: [BackupListener, QueryRunnerService],
+  exports: [QueryRunnerService],
 })
 export class DatabaseModule {}
