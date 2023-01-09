@@ -2,7 +2,11 @@ import { Table } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 export class CustomNamingStrategy extends SnakeNamingStrategy {
-  primaryKeyName(tableOrName: Table | string, columnNames: string[]): string {
+  generateNaming(
+    prefix: string,
+    tableOrName: Table | string,
+    columnNames: string[],
+  ): string {
     tableOrName =
       typeof tableOrName === 'string' ? tableOrName : tableOrName.name;
 
@@ -12,7 +16,21 @@ export class CustomNamingStrategy extends SnakeNamingStrategy {
       tableName = tableOrName;
     }
 
-    return `pk_${tableName}__${columnNames.join('_')}`;
+    return `${prefix}_${tableName}__${columnNames.join('_')}`;
+  }
+  primaryKeyName(tableOrName: Table | string, columnNames: string[]): string {
+    return this.generateNaming('pk', tableOrName, columnNames);
+  }
+
+  indexName(tableOrName: Table | string, columns: string[]): string {
+    return this.generateNaming('idx', tableOrName, columns);
+  }
+
+  uniqueConstraintName(
+    tableOrName: Table | string,
+    columnNames: string[],
+  ): string {
+    return this.generateNaming('uq', tableOrName, columnNames);
   }
 
   foreignKeyName(
