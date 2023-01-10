@@ -10,8 +10,8 @@ declare module 'typeorm/query-builder/SelectQueryBuilder' {
     ): SelectQueryBuilder<Entity>;
     AndAmountRange(
       this: SelectQueryBuilder<Entity>,
-      amountFrom?: string,
-      amountTo?: string,
+      amountFrom?: number,
+      amountTo?: number,
       ALIAS?: string,
     ): SelectQueryBuilder<Entity>;
     AndSearch(
@@ -123,21 +123,22 @@ SelectQueryBuilder.prototype.AndSearch = function <Entity>(
  */
 SelectQueryBuilder.prototype.AndAmountRange = function <Entity>(
   this: SelectQueryBuilder<Entity>,
-  amountFrom?: string,
-  amountTo?: string,
+  amountFrom?: number,
+  amountTo?: number,
   queryAlias?: string,
 ): SelectQueryBuilder<Entity> {
-  if (amountFrom || amountTo) {
-    const alias = queryAlias || this.alias;
+  const alias = queryAlias || this.alias;
 
-    this.andWhere(
-      amountFrom && amountTo
-        ? `${alias}.amount BETWEEN :amountFrom AND :amountTo`
-        : amountFrom
-        ? `${alias}.amount >= :amountFrom`
-        : `${alias}.amount <= :amountTo`,
-      { amountFrom, amountTo },
-    );
+  if (amountFrom) {
+    this.andWhere(`${alias}.amount::NUMERIC >= (:amountFrom)::NUMERIC`, {
+      amountFrom,
+    });
+  }
+
+  if (amountTo) {
+    this.andWhere(`${alias}.amount::NUMERIC <= (:amountTo)::NUMERIC`, {
+      amountTo,
+    });
   }
 
   return this;
