@@ -12,7 +12,7 @@ declare module 'typeorm/query-builder/SelectQueryBuilder' {
       this: SelectQueryBuilder<Entity>,
       amountFrom?: number,
       amountTo?: number,
-      ALIAS?: string,
+      aliasWithColumn?: string,
     ): SelectQueryBuilder<Entity>;
     AndSearch(
       this: SelectQueryBuilder<Entity>,
@@ -21,28 +21,23 @@ declare module 'typeorm/query-builder/SelectQueryBuilder' {
     ): SelectQueryBuilder<Entity>;
     AndIN(
       this: SelectQueryBuilder<Entity>,
-      columnName: string,
+      aliasWithColumn: string,
       values: string[],
     ): SelectQueryBuilder<Entity>;
     AndStatus(
       this: SelectQueryBuilder<Entity>,
       status?: string,
     ): SelectQueryBuilder<Entity>;
-    // CustomInnerJoinAndSelect(
-    //   this: SelectQueryBuilder<Entity>,
-    //   ALIAS,
-    //   RELATIONS: string[],
-    // ): SelectQueryBuilder<Entity>;
   }
 }
 
 SelectQueryBuilder.prototype.AndIN = function <Entity>(
   this: SelectQueryBuilder<Entity>,
-  columnName: string,
+  aliasWithColumn: string,
   values: string[],
 ): SelectQueryBuilder<Entity> {
   if (values.length > 0) {
-    this.andWhere(`${this.alias}.${columnName} IN (:...values)`, { values });
+    this.andWhere(`${aliasWithColumn} IN (:...values)`, { values });
   }
 
   return this;
@@ -119,39 +114,27 @@ SelectQueryBuilder.prototype.AndSearch = function <Entity>(
  * @constructor
  * @param amountFrom
  * @param amountTo
- * @param queryAlias
+ * @param aliasWithColumn
  */
 SelectQueryBuilder.prototype.AndAmountRange = function <Entity>(
   this: SelectQueryBuilder<Entity>,
   amountFrom?: number,
   amountTo?: number,
-  queryAlias?: string,
+  aliasWithColumn?: string,
 ): SelectQueryBuilder<Entity> {
-  const alias = queryAlias || this.alias;
+  aliasWithColumn = aliasWithColumn || `${this.alias}.amount`;
 
   if (amountFrom) {
-    this.andWhere(`${alias}.amount::NUMERIC >= (:amountFrom)::NUMERIC`, {
+    this.andWhere(`(${aliasWithColumn})::NUMERIC >= (:amountFrom)::NUMERIC`, {
       amountFrom,
     });
   }
 
   if (amountTo) {
-    this.andWhere(`${alias}.amount::NUMERIC <= (:amountTo)::NUMERIC`, {
+    this.andWhere(`(${aliasWithColumn})::NUMERIC <= (:amountTo)::NUMERIC`, {
       amountTo,
     });
   }
 
   return this;
 };
-
-// // InnerJoinAndSelect For Joining Multiple Relations Of Sub Alias.
-// SelectQueryBuilder.prototype.CustomInnerJoinAndSelect = function <Entity>(
-//   this: SelectQueryBuilder<Entity>,
-//   ALIAS,
-//   RELATIONS: string[],
-// ): SelectQueryBuilder<Entity> {
-//   return RELATIONS.reduce((acc: any, item: any): any => {
-//     acc = acc.innerJoinAndSelect(`${ALIAS}.${item}`, `${item}`);
-//     return acc;
-//   }, this);
-// };
